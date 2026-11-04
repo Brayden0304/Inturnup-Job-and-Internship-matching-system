@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="hero-background"></div>
+  <div class="hero-content">
+    <div class="hero-text">
+      <div class="hero-pretitle">
+        INSTITUTIONAL PLACEMENT NETWORK
+      </div>
+      <h1 class="hero-lead-paragraph">
+        InternUp is a premier student job &amp; internship matching platform, connecting high achieving students with industry defining organisations.
+      </h1>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-number">500+</span>
+          <span class="stat-label">Verified Companies</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">10K+</span>
+          <span class="stat-label">Active Members</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">95.4%</span>
+          <span class="stat-label">Cohort Match Rate</span>
+        </div>
+      </div>
+            <div class="hero-buttons">
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for(current_user.role + '.dashboard') }}" class="btn btn-primary btn-large">
+          Go to Dashboard
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline btn-large">
+          Sign Out
+        </a>
+        {% else %}
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-large">
+          Member Sign Up
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Luxury Bespoke UI Dossier Mockup -->
+    <div class="hero-visual">
+      <div class="dossier-card">
+        <div class="dossier-header">
+          <div class="dossier-seal">
+            <span class="seal-icon">✦</span>
+            <span>VERIFIED TALENT DOSSIER</span>
+          </div>
+          <div class="dossier-score">
+            <span class="score-label">Compatibility Index</span>
+            <span class="score-val">98.4%</span>
+          </div>
+        </div>
+
+        <div class="dossier-body">
+          <div class="candidate-summary">
+            <div class="candidate-avatar">AT</div>
+            <div class="candidate-meta">
+              <div class="candidate-name">Alexander Thorne</div>
+              <div class="candidate-role">B.Sc. Information Technology · Year 3 Honors</div>
+            </div>
+          </div>
+
+          <div class="opportunity-match">
+            <div class="opp-label">Recommended Placement</div>
+            <div class="opp-title">Associate Cloud Architect & Systems Analyst</div>
+            <div class="opp-company">Standard Bank Group · CIB Division</div>
+          </div>
+
+          <div class="competency-matrix">
+            <span class="matrix-pill">Distributed Systems</span>
+            <span class="matrix-pill">Python Architecture</span>
+            <span class="matrix-pill">DropGuard™ Vetted</span>
+          </div>
+        </div>
+
+        <div class="dossier-footer">
+          <div class="security-chip">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>Cryptographically Verified Profile</span>
+          </div>
+          <span class="placement-status">Priority Review</span>
+        </div>
+      </div>
+
+      <div class="floating-badge-award">
+        <div class="award-icon">◈</div>
+        <div class="award-text">
+          <span class="award-title">Top 2% Candidate</span>
+          <span class="award-sub">Dean’s Merit List 2026</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Value Proposition Section -->
+<section class="value-section">
+  <div class="value-container">
+    <div class="value-horizontal-grid">
+      <div class="value-horizontal-card">
+        <div class="value-icon-col">
+          <div class="value-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="m4.93 4.93 4.24 4.24"/>
+              <path d="m14.83 9.17 4.24-4.24"/>
+              <path d="m14.83 14.83 4.24 4.24"/>
+              <path d="m9.17 14.83-4.24 4.24"/>
+              <circle cx="12" cy="12" r="4"/>
+            </svg>
+          </div>
+        </div>
+        <div class="value-text-col">
+          <h3>Competency Harmonisation</h3>
+          <p>Multi-dimensional matching engine mapping verified curricula, technical competencies, and behavioural factors against corporate requirements with precision.</p>
+        </div>
+      </div>
+
+      <div class="value-horizontal-card">
+        <div class="value-icon-col">
+          <div class="value-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+          </div>
+        </div>
+        <div class="value-text-col">
+          <h3>DropGuard™ Verification</h3>
+          <p>Proprietary fraud detection algorithms actively auditing corporate listings, eliminating fraudulent advertisements, unpaid exploitations, and disengaged candidates.</p>
+        </div>
+      </div>
+
+      <div class="value-horizontal-card">
+        <div class="value-icon-col">
+          <div class="value-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+        </div>
+        <div class="value-text-col">
+          <h3>Executive Network Access</h3>
+          <p>Direct conduits to enterprise hiring managers, faculty mentors, and distinguished alumni across banking, cloud architecture, and multinational consulting firms.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section - 3 Horizontal Step Boxes -->
+<section class="how-section">
+  <div class="how-container">
+    <div class="section-header how-header">
+      <h2 class="section-title">The Three Pillars of Placement</h2>
+      <p class="section-subtitle">A simple, step-by-step path from your studies straight into your career.</p>
+    </div>
+    <div class="value-horizontal-grid">
+      <div class="value-horizontal-card">
+        <div class="value-icon-col">
+          <div class="value-icon-box step-num-box">
+            <span>01</span>
+          </div>
+        </div>
+        <div class="value-text-col">
+          <h3>Build Your Profile</h3>
+          <p>Add your qualifications, key skills, and coursework to create a verified candidate profile employers trust.</p>
+        </div>
+      </div>
+
+      <div class="value-horizontal-card">
+        <div class="value-icon-col">
+          <div class="value-icon-box step-num-box">
+            <span>02</span>
+          </div>
+        </div>
+        <div class="value-text-col">
+          <h3>Smart Matching</h3>
+          <p>Our intelligent system matches your unique strengths directly with the best job and internship opportunities.</p>
+        </div>
+      </div>
+
+      <div class="value-horizontal-card">
+        <div class="value-icon-col">
+          <div class="value-icon-box step-num-box">
+            <span>03</span>
+          </div>
+        </div>
+        <div class="value-text-col">
+          <h3>Get Hired</h3>
+          <p>Apply directly to vetted employers, track your applications in real time, and receive interview invitations.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Small App Download Callout -->
+<section class="download-app-section">
+  <div class="download-app-container">
+    <div class="download-app-card">
+      <div class="download-app-info">
+        <span class="download-brand-mark">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C5A059" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+        </span>
+        <div class="download-text-block">
+          <h4 class="download-title">Download the InternUp app</h4>
+          <p class="download-subtitle">Fast, seamless access to internships and verified opportunities on your device.</p>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary btn-small download-btn" onclick="handleAppInstall()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Install App</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

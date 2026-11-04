@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+{% block title %}Opportunity Catalog{% endblock %}
+{% block content %}
+<div class="section-title" style="margin-bottom: 1.5rem;">
+  <div>
+    <h1>Verified <span class="italic-serif">Opportunity Catalog</span></h1>
+    <p class="muted" style="margin: 0;">Multi-disciplinary corporate rotations, internships, and accredited graduate vacancies.</p>
+  </div>
+</div>
+
+<!-- Search & Faceted Filter Bar -->
+<div class="card" style="margin-bottom: 1.8rem; border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 1.4rem;">
+  <form method="GET" id="searchFilterForm">
+    <div class="form-row" style="margin-bottom: 1rem;">
+      <div class="field" style="flex: 2; margin-bottom: 0; position: relative;">
+        <label style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Keyword Search</label>
+        <input type="text" name="q" id="searchInput" value="{{ query }}" placeholder="Role title, keywords, or corporate division..." autocomplete="off" list="searchHistory">
+        <datalist id="searchHistory">
+          <option value="Software Engineer">
+          <option value="Data Analyst">
+          <option value="Financial Analyst">
+          <option value="Marketing Manager">
+          <option value="Mechanical Engineer">
+          <option value="Nursing">
+          <option value="Legal">
+        </datalist>
+      </div>
+      <div class="field" style="flex: 1; margin-bottom: 0;">
+        <label style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Location / Region</label>
+        <input type="text" name="location" id="locationInput" value="{{ location }}" placeholder="Johannesburg, Cape Town, Remote..." autocomplete="off">
+      </div>
+    </div>
+
+    <!-- Active Filter Tags -->
+    <div id="activeFilters" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; min-height: 0;">
+      {% if query %}
+      <span class="tag" style="background: var(--gold-light); color: var(--gold-dark); padding: 0.35rem 0.7rem; border-radius: 20px; font-size: 0.78rem; display: flex; align-items: center; gap: 0.4rem;">
+        Search: {{ query }}
+        <button type="button" onclick="clearFilter('q')" style="background: none; border: none; cursor: pointer; color: var(--gold-dark); font-size: 1rem; line-height: 1; padding: 0;">×</button>
+      </span>
+      {% endif %}
+      {% if location %}
+      <span class="tag" style="background: var(--gold-light); color: var(--gold-dark); padding: 0.35rem 0.7rem; border-radius: 20px; font-size: 0.78rem; display: flex; align-items: center; gap: 0.4rem;">
+        Location: {{ location }}
+        <button type="button" onclick="clearFilter('location')" style="background: none; border: none; cursor: pointer; color: var(--gold-dark); font-size: 1rem; line-height: 1; padding: 0;">×</button>
+      </span>
+      {% endif %}
+      {% if field and field != 'All' %}
+      <span class="tag" style="background: var(--gold-light); color: var(--gold-dark); padding: 0.35rem 0.7rem; border-radius: 20px; font-size: 0.78rem; display: flex; align-items: center; gap: 0.4rem;">
+        Field: {{ field }}
+        <button type="button" onclick="clearFilter('field')" style="background: none; border: none; cursor: pointer; color: var(--gold-dark); font-size: 1rem; line-height: 1; padding: 0;">×</button>
+      </span>
+      {% endif %}
+      {% if opp_type and opp_type != 'All' %}
+      <span class="tag" style="background: var(--gold-light); color: var(--gold-dark); padding: 0.35rem 0.7rem; border-radius: 20px; font-size: 0.78rem; display: flex; align-items: center; gap: 0.4rem;">
+        Type: {{ opp_type|capitalize }}
+        <button type="button" onclick="clearFilter('type')" style="background: none; border: none; cursor: pointer; color: var(--gold-dark); font-size: 1rem; line-height: 1; padding: 0;">×</button>
+      </span>
+      {% endif %}
+      {% if min_stipend %}
+      <span class="tag" style="background: var(--gold-light); color: var(--gold-dark); padding: 0.35rem 0.7rem; border-radius: 20px; font-size: 0.78rem; display: flex; align-items: center; gap: 0.4rem;">
+        Min Stipend: R{{ "{:,.0f}".format(min_stipend|int) }}
+        <button type="button" onclick="clearFilter('min_stipend')" style="background: none; border: none; cursor: pointer; color: var(--gold-dark); font-size: 1rem; line-height: 1; padding: 0;">×</button>
+      </span>
+      {% endif %}
+    </div>
+
+    <!-- Faceted Filter Pills -->
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; padding-top: 0.8rem; border-top: 1px solid var(--border);">
+      <!-- Faculty Filter -->
+      <div style="display: flex; align-items: center; gap: 0.4rem;">
+        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--ink-soft);">Faculty:</span>
+        <select name="field" id="fieldSelect" style="font-size: 0.82rem; padding: 0.35rem 0.6rem; border-radius: 6px; border: 1px solid var(--border); background: var(--paper-raised); color: var(--ink);">
+          <option value="All" {% if not field or field == 'All' %}selected{% endif %}>All Disciplines</option>
+          <option value="Information Technology" {% if field == 'Information Technology' %}selected{% endif %}>IT & Software</option>
+          <option value="Finance & Accounting" {% if field == 'Finance & Accounting' %}selected{% endif %}>Finance & Accounting</option>
+          <option value="Engineering" {% if field == 'Engineering' %}selected{% endif %}>Engineering</option>
+          <option value="Marketing & Communications" {% if field == 'Marketing & Communications' %}selected{% endif %}>Marketing & PR</option>
+          <option value="Healthcare & Nursing" {% if field == 'Healthcare & Nursing' %}selected{% endif %}>Healthcare</option>
+          <option value="Law & Governance" {% if field == 'Law & Governance' %}selected{% endif %}>Law</option>
+        </select>
+      </div>
+
+      <!-- Placement Type Filter -->
+      <div style="display: flex; align-items: center; gap: 0.4rem;">
+        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--ink-soft);">Type:</span>
+        <select name="type" id="typeSelect" style="font-size: 0.82rem; padding: 0.35rem 0.6rem; border-radius: 6px; border: 1px solid var(--border); background: var(--paper-raised); color: var(--ink);">
+          <option value="All" {% if not opp_type or opp_type == 'All' %}selected{% endif %}>All Formats</option>
+          <option value="internship" {% if opp_type == 'internship' %}selected{% endif %}>Internships</option>
+          <option value="entry-level" {% if opp_type == 'entry-level' %}selected{% endif %}>Graduate Programs</option>
+        </select>
+      </div>
+
+      <!-- Minimum Stipend Threshold Filter -->
+      <div style="display: flex; align-items: center; gap: 0.4rem;">
+        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--ink-soft);">Min Stipend:</span>
+        <select name="min_stipend" id="stipendSelect" style="font-size: 0.82rem; padding: 0.35rem 0.6rem; border-radius: 6px; border: 1px solid var(--border); background: var(--paper-raised); color: var(--ink);">
+          <option value="" {% if not min_stipend %}selected{% endif %}>Any Stipend</option>
+          <option value="15000" {% if min_stipend == '15000' %}selected{% endif %}>R15,000+/mo</option>
+          <option value="25000" {% if min_stipend == '25000' %}selected{% endif %}>R25,000+/mo</option>
+          <option value="30000" {% if min_stipend == '30000' %}selected{% endif %}>R30,000+/mo</option>
+        </select>
+      </div>
+
+      <!-- Work Type Toggle -->
+      <div style="display: flex; align-items: center; gap: 0.4rem;">
+        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--ink-soft);">Work Type:</span>
+        <select name="work_type" id="workTypeSelect" style="font-size: 0.82rem; padding: 0.35rem 0.6rem; border-radius: 6px; border: 1px solid var(--border); background: var(--paper-raised); color: var(--ink);">
+          <option value="All" {% if not work_type or work_type == 'All' %}selected{% endif %}>All Types</option>
+          <option value="on-site" {% if work_type == 'on-site' %}selected{% endif %}>On-site</option>
+          <option value="remote" {% if work_type == 'remote' %}selected{% endif %}>Remote</option>
+          <option value="hybrid" {% if work_type == 'hybrid' %}selected{% endif %}>Hybrid</option>
+        </select>
+      </div>
+
+      <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+        <a href="{{ url_for('student.search') }}" class="btn btn-small btn-outline">Reset</a>
+        <button type="submit" class="btn btn-primary btn-small">Apply Filters</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Opportunity Results Grid -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+  <div style="font-size: 0.88rem; color: var(--ink-soft);">
+    Showing <strong>{{ results|length }}</strong> matching opportunities sorted by compatibility
+  </div>
+</div>
+
+{% if results %}
+  {% for opp, score in results %}
+  <div class="card" style="margin-bottom: 1rem; border: 1px solid var(--border); transition: transform 0.2s, box-shadow 0.2s;">
+    <div class="card-row" style="align-items: flex-start;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+          <span class="badge badge-neutral" style="font-size: 0.7rem;">{{ opp.field_of_study or "General" }}</span>
+          <span style="font-size: 0.75rem; color: var(--ink-soft);">· {{ opp.opportunity_type|capitalize }}</span>
+        </div>
+        <h3 style="margin: 0 0 0.3rem 0; font-size: 1.25rem;">
+          <a href="{{ url_for('student.view_opportunity', opp_id=opp.id) }}" style="color: var(--ink); text-decoration: none;">{{ opp.title }}</a>
+        </h3>
+        <p class="muted" style="margin-bottom: 0.6rem; font-size: 0.88rem;">
+          <strong>{{ opp.company.company_name }}</strong>
+          {% if opp.company.verified %}
+          <span class="verified-badge" style="margin-left: 0.4rem;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            Verified
+          </span>
+          {% endif %}
+          · {{ opp.location or "Location flexible" }}
+          {% if opp.salary_stipend %} · <span class="mono" style="font-weight: 600; color: var(--gold-dark);">R{{ "{:,.0f}".format(opp.salary_stipend) }}/mo</span>{% endif %}
+          · {{ opp.duration_months }} Months
+        </p>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.6rem;">
+          {% for s in opp.required_skills_list()[:6] %}
+            <span class="tag" style="font-size: 0.75rem;">{{ s }}</span>
+          {% endfor %}
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.8rem; margin-top: 0.5rem;">
+          {% if opp.id in applied_ids %}
+            <span class="badge badge-low" style="font-size: 0.72rem;">● Application Lodged</span>
+          {% else %}
+            <a href="{{ url_for('student.view_opportunity', opp_id=opp.id) }}" class="btn btn-small btn-primary" style="font-size: 0.78rem;">
+              Inspect & Apply →
+            </a>
+          {% endif %}
+          <button type="button" class="btn btn-small btn-outline bookmark-btn" data-opp-id="{{ opp.id }}" style="padding: 0.4rem 0.6rem;" title="Bookmark this opportunity">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <div style="text-align: right; min-width: 90px;">
+        <div class="match-ring" style="--pct:{{ score }}; margin-left: auto;">
+          <span>{{ score|round(0)|int }}%</span>
+        </div>
+        <div style="font-size: 0.68rem; color: var(--ink-soft); font-weight: 600; margin-top: 0.3rem;">Match Score</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="empty-state" style="padding: 4rem 2rem; text-align: center; background: var(--paper-raised); border-radius: var(--radius-lg); border: 2px dashed var(--border);">
+    <div style="font-size: 4rem; margin-bottom: 1.5rem; opacity: 0.7;">🔍</div>
+    <h3 style="margin: 0 0 0.75rem 0; font-size: 1.4rem;">No opportunities match your criteria</h3>
+    <p class="muted" style="margin-bottom: 0.5rem; font-size: 0.95rem;">Try adjusting your filters to see more results</p>
+    <p class="muted" style="margin-bottom: 2rem; font-size: 0.88rem;">You can loosen your minimum stipend requirement or switch faculty filters.</p>
+    <a href="{{ url_for('student.search') }}" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-size: 0.95rem;">Clear All Filters</a>
+  </div>
+{% endif %}
+
+<script>
+// Real-time search with debouncing
+let searchTimeout;
+const searchInput = document.getElementById('searchInput');
+const locationInput = document.getElementById('locationInput');
+const fieldSelect = document.getElementById('fieldSelect');
+const typeSelect = document.getElementById('typeSelect');
+const stipendSelect = document.getElementById('stipendSelect');
+const workTypeSelect = document.getElementById('workTypeSelect');
+
+function submitForm() {
+  document.getElementById('searchFilterForm').submit();
+}
+
+// Debounced search for keyword input
+searchInput.addEventListener('input', function() {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(submitForm, 500);
+});
+
+// Debounced search for location input
+locationInput.addEventListener('input', function() {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(submitForm, 500);
+});
+
+// Immediate submission for dropdown changes
+fieldSelect.addEventListener('change', submitForm);
+typeSelect.addEventListener('change', submitForm);
+stipendSelect.addEventListener('change', submitForm);
+workTypeSelect.addEventListener('change', submitForm);
+
+// Clear individual filter
+function clearFilter(filterName) {
+  const form = document.getElementById('searchFilterForm');
+  const input = form.querySelector(`[name="${filterName}"]`);
+  if (input) {
+    input.value = '';
+    submitForm();
+  }
+}
+
+// Bookmark toggle
+document.querySelectorAll('.bookmark-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const oppId = this.getAttribute('data-opp-id');
+    const svg = this.querySelector('svg');
+
+    fetch('/student/bookmark/' + oppId, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.bookmarked) {
+        svg.setAttribute('fill', 'currentColor');
+        this.style.color = 'var(--gold-dark)';
+      } else {
+        svg.setAttribute('fill', 'none');
+        this.style.color = '';
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

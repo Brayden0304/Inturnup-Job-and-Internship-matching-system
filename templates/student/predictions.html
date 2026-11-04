@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Predictions{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Opportunity Predictions</h1>
+  <p class="muted">AI-powered predictions showing which opportunities you're most likely to succeed in</p>
+</div>
+
+<div class="predictions-container">
+  <div class="predictions-stats">
+    <div class="stat-card">
+      <div class="stat-value">{{ predictions|length }}</div>
+      <div class="stat-label">Analysed Opportunities</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">
+        {% set high_matches = predictions|selectattr('prediction', 'equalto', 'High Match')|list|length %}
+        {{ high_matches }}
+      </div>
+      <div class="stat-label">High Matches</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">
+        {% set avg_conf = (predictions|sum(attribute='confidence') / predictions|length)|round(1) %}
+        {{ avg_conf }}%
+      </div>
+      <div class="stat-label">Avg Confidence</div>
+    </div>
+  </div>
+
+  <div class="predictions-list">
+    {% for pred in predictions %}
+    <div class="prediction-card">
+      <div class="prediction-header">
+        <div class="prediction-info">
+          <h3>{{ pred.opportunity.title }}</h3>
+          <p class="company-name">{{ pred.opportunity.company.company_name }}</p>
+        </div>
+        <div class="prediction-score">
+          <div class="confidence-badge badge-{{ pred.color }}">
+            {{ pred.prediction }}
+          </div>
+          <div class="confidence-value">{{ pred.confidence }}%</div>
+        </div>
+      </div>
+      <div class="prediction-details">
+        <div class="detail-row">
+          <span class="detail-label">Match Score:</span>
+          <span class="detail-value">{{ pred.score }}/100</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Field:</span>
+          <span class="detail-value">{{ pred.opportunity.field_of_study }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Location:</span>
+          <span class="detail-value">{{ pred.opportunity.location or 'Remote' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Type:</span>
+          <span class="detail-value">{{ pred.opportunity.opportunity_type|title }}</span>
+        </div>
+      </div>
+      <div class="prediction-actions">
+        <a href="{{ url_for('student.view_opportunity', opp_id=pred.opportunity.id) }}" class="btn btn-primary btn-small">
+          View Details
+        </a>
+        <a href="{{ url_for('student.apply', opp_id=pred.opportunity.id) }}" class="btn btn-outline btn-small">
+          Apply Now
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

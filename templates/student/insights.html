@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Insights{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Application Insights</h1>
+  <p class="muted">Deep analytics on your application performance and career progress</p>
+</div>
+
+<div class="insights-container">
+  <div class="insights-stats-grid">
+    <div class="insight-stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ insights.total_applications }}</div>
+        <div class="stat-label">Total Applications</div>
+      </div>
+    </div>
+    <div class="insight-stat-card">
+      <div class="stat-icon">🎯</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ insights.avg_match_score }}%</div>
+        <div class="stat-label">Avg Match Score</div>
+      </div>
+    </div>
+    <div class="insight-stat-card">
+      <div class="stat-icon">✉️</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ insights.response_rate }}%</div>
+        <div class="stat-label">Response Rate</div>
+      </div>
+    </div>
+    <div class="insight-stat-card">
+      <div class="stat-icon">🏆</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ insights.success_rate }}%</div>
+        <div class="stat-label">Success Rate</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insights-grid">
+    <div class="insight-card chart-card">
+      <div class="card-header">
+        <h3>Skill Match Trend</h3>
+        <p class="muted">Your improving match scores over time</p>
+      </div>
+      <div class="chart-container">
+        <canvas id="skillTrendChart"></canvas>
+      </div>
+    </div>
+
+    <div class="insight-card status-card">
+      <div class="card-header">
+        <h3>Application Status</h3>
+        <p class="muted">Breakdown of your application outcomes</p>
+      </div>
+      <div class="status-breakdown">
+        <div class="status-item">
+          <div class="status-label">Pending</div>
+          <div class="status-bar">
+            <div class="status-fill status-pending" style="width: {{ (insights.status_counts.pending / insights.total_applications * 100) if insights.total_applications > 0 else 0 }}%"></div>
+          </div>
+          <div class="status-count">{{ insights.status_counts.pending }}</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Viewed</div>
+          <div class="status-bar">
+            <div class="status-fill status-viewed" style="width: {{ (insights.status_counts.viewed / insights.total_applications * 100) if insights.total_applications > 0 else 0 }}%"></div>
+          </div>
+          <div class="status-count">{{ insights.status_counts.viewed }}</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Interview</div>
+          <div class="status-bar">
+            <div class="status-fill status-interview" style="width: {{ (insights.status_counts.interview / insights.total_applications * 100) if insights.total_applications > 0 else 0 }}%"></div>
+          </div>
+          <div class="status-count">{{ insights.status_counts.interview }}</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Offer</div>
+          <div class="status-bar">
+            <div class="status-fill status-offer" style="width: {{ (insights.status_counts.offer / insights.total_applications * 100) if insights.total_applications > 0 else 0 }}%"></div>
+          </div>
+          <div class="status-count">{{ insights.status_counts.offer }}</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Rejected</div>
+          <div class="status-bar">
+            <div class="status-fill status-rejected" style="width: {{ (insights.status_counts.rejected / insights.total_applications * 100) if insights.total_applications > 0 else 0 }}%"></div>
+          </div>
+          <div class="status-count">{{ insights.status_counts.rejected }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-card recent-activity-card">
+    <div class="card-header">
+      <h3>Recent Activity</h3>
+      <p class="muted">Your latest applications and their status</p>
+    </div>
+    <div class="recent-activity-list">
+      {% if insights.recent_apps %}
+        {% for app in insights.recent_apps %}
+        <div class="activity-item">
+          <div class="activity-info">
+            <h4>{{ app.opportunity.title }}</h4>
+            <p class="company-name">{{ app.opportunity.company.company_name }}</p>
+          </div>
+          <div class="activity-meta">
+            <span class="match-score">{{ app.match_score }}% match</span>
+            <span class="applied-date">{{ app.applied_at.strftime('%d %b %Y') }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <p>No applications yet. Start applying to opportunities to see your insights!</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  const skillTrendCtx = document.getElementById('skillTrendChart').getContext('2d');
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const textColor = isDark ? '#FAFAFA' : '#1A1A1A';
+  const gridColor = isDark ? '#2A2A2A' : '#E5E5E5';
+
+  new Chart(skillTrendCtx, {
+    type: 'line',
+    data: {
+      labels: {{ insights.skill_trend.labels | safe }},
+      datasets: [{
+        label: 'Match Score',
+        data: {{ insights.skill_trend.data | safe }},
+        borderColor: 'rgba(212, 175, 55, 1)',
+        backgroundColor: 'rgba(212, 175, 55, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: 'rgba(212, 175, 55, 1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            color: textColor,
+            callback: function(value) {
+              return value + '%';
+            }
+          },
+          grid: {
+            color: gridColor
+          }
+        },
+        x: {
+          ticks: {
+            color: textColor
+          },
+          grid: {
+            display: false
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

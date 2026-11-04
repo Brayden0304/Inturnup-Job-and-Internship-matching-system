@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.8rem;">
+  <div>
+    <h1>Candidate <span class="italic-serif">Profile</span></h1>
+    <p class="muted" style="margin: 0;">Verified academic credentials, faculty discipline, and placement details.</p>
+  </div>
+  <a href="{{ url_for('student.dossier') }}" class="btn btn-outline btn-small" target="_blank" style="display: flex; align-items: center; gap: 0.45rem;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+    <span>View Placement Dossier (PDF)</span>
+  </a>
+</div>
+
+<!-- Profile Completion Progress -->
+<div class="card" style="margin-bottom: 2rem; border: 1px solid var(--border); background: var(--paper-raised); padding: 1.4rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+    <div style="display: flex; align-items: center; gap: 0.65rem;">
+      <div style="width: 32px; height: 32px; border-radius: 6px; background: var(--gold-light); color: var(--gold-dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+      </div>
+      <div>
+        <strong style="font-size: 0.95rem; color: var(--ink);">Profile Completion</strong>
+        <div class="muted" style="font-size: 0.78rem;">Complete your profile to improve visibility and match scores</div>
+      </div>
+    </div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold-dark);">{{ profile.profile_completeness|round(0)|int }}%</div>
+  </div>
+
+  <!-- Overall Progress Bar -->
+  <div style="margin-bottom: 1.2rem;">
+    <div style="height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;">
+      <div style="height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-dark)); width: {{ profile.profile_completeness }}%; transition: width 0.3s ease;"></div>
+    </div>
+  </div>
+
+  <!-- Individual Section Progress -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+    <div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.3rem;">
+        <span>Basic Info</span>
+        <span style="font-weight: 600;">{% if profile.full_name and profile.qualification and profile.field_of_study %}100%{% else %}0%{% endif %}</span>
+      </div>
+      <div style="height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
+        <div style="height: 100%; background: var(--teal); width: {% if profile.full_name and profile.qualification and profile.field_of_study %}100%{% else %}0%{% endif %};"></div>
+      </div>
+    </div>
+    <div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.3rem;">
+        <span>Skills</span>
+        <span style="font-weight: 600;">{% if profile.skills %}100%{% else %}0%{% endif %}</span>
+      </div>
+      <div style="height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
+        <div style="height: 100%; background: var(--teal); width: {% if profile.skills %}100%{% else %}0%{% endif %};"></div>
+      </div>
+    </div>
+    <div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.3rem;">
+        <span>Interests</span>
+        <span style="font-weight: 600;">{% if profile.interests %}100%{% else %}0%{% endif %}</span>
+      </div>
+      <div style="height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
+        <div style="height: 100%; background: var(--teal); width: {% if profile.interests %}100%{% else %}0%{% endif %};"></div>
+      </div>
+    </div>
+    <div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.3rem;">
+        <span>Bio</span>
+        <span style="font-weight: 600;">{% if profile.bio %}100%{% else %}0%{% endif %}</span>
+      </div>
+      <div style="height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
+        <div style="height: 100%; background: var(--teal); width: {% if profile.bio %}100%{% else %}0%{% endif %};"></div>
+      </div>
+    </div>
+    <div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.3rem;">
+        <span>Location</span>
+        <span style="font-weight: 600;">{% if profile.location %}100%{% else %}0%{% endif %}</span>
+      </div>
+      <div style="height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
+        <div style="height: 100%; background: var(--teal); width: {% if profile.location %}100%{% else %}0%{% endif %};"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Clean Pre-Fill from CV or Transcript -->
+<div class="card" style="margin-bottom: 2rem; border: 1px solid var(--border); background: var(--paper-raised); padding: 1.4rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 0.8rem;">
+    <div style="display: flex; align-items: center; gap: 0.65rem;">
+      <div style="width: 32px; height: 32px; border-radius: 6px; background: var(--gold-light); color: var(--gold-dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+      </div>
+      <div>
+        <strong style="font-size: 0.95rem; color: var(--ink);">Quick Import from CV or Transcript</strong>
+        <div class="muted" style="font-size: 0.78rem;">Paste text from your resume or transcript to auto-complete the profile form below.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 0.8rem;">
+    <textarea id="aiCvInput" rows="3" autocomplete="off" placeholder="Paste your CV text or transcript summary here (e.g. education, coursework modules, competencies, work experience)..." style="width: 100%; font-size: 0.85rem; font-family: inherit; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--paper); color: var(--ink); resize: vertical;"></textarea>
+  </div>
+
+  <div style="display: flex; justify-content: flex-end; align-items: center;">
+    <button type="button" id="btnParseCv" class="btn btn-primary btn-small" onclick="triggerAiCvParse()">
+      <span id="parseBtnText">Pre-Fill Profile Details</span>
+    </button>
+  </div>
+
+  <div id="aiParseAlert" style="display: none; margin-top: 0.8rem; padding: 0.65rem 0.9rem; border-radius: 6px; font-size: 0.82rem;"></div>
+</div>
+
+<!-- Main Profile Form -->
+<div class="card form-narrow" style="border: 1px solid var(--border);">
+  <form method="POST" id="profileForm">
+    <div class="field">
+      <label>Full Name</label>
+      <input type="text" name="full_name" id="field_full_name" value="{{ profile.full_name }}" required minlength="2" maxlength="100" pattern="^[A-Za-zÀ-ÖØ-öø-ÿ\s'.-]{2,100}$" title="Please enter a valid full name containing only letters, spaces, and hyphens (minimum 2 characters).">
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Qualification / Degree</label>
+        <input type="text" name="qualification" id="field_qualification" value="{{ profile.qualification or '' }}" placeholder="E.g. BSc (Hons) Computer Science & Applied Maths">
+      </div>
+      <div class="field">
+        <label>Faculty / Field of Study</label>
+        <select name="field_of_study" id="field_field_of_study" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--paper-raised); color: var(--ink);">
+          <option value="" disabled {% if not profile.field_of_study %}selected{% endif %}>Select your field of study</option>
+          {% for f in ['Information Technology', 'Finance & Accounting', 'Engineering', 'Marketing & Communications', 'Healthcare & Nursing', 'Law & Governance', 'General Business'] %}
+          <option value="{{ f }}" {% if profile.field_of_study == f %}selected{% endif %}>{{ f }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Core Proficiencies & Coursework Modules
+        <span class="tooltip" tabindex="0" role="button" aria-label="Help: List your technical skills, programming languages, and relevant coursework. These are matched against job requirements to calculate your compatibility score." data-help="List your technical skills, programming languages, and relevant coursework. These are matched against job requirements to calculate your compatibility score.">ⓘ</span>
+      </label>
+      <input type="text" name="skills" id="field_skills" value="{{ profile.skills or '' }}" placeholder="Python, SQL, Financial Modeling, IFRS, SolidWorks">
+      <div class="hint">Comma-separated core proficiencies and academic coursework modules. Used to verify alignment with employer criteria.</div>
+    </div>
+    <div class="field">
+      <label>Professional Interests
+        <span class="tooltip" tabindex="0" role="button" aria-label="Help: Specific industries, roles, or career paths you're interested in pursuing. This helps recommend relevant opportunities." data-help="Specific industries, roles, or career paths you're interested in pursuing. This helps recommend relevant opportunities.">ⓘ</span>
+      </label>
+      <input type="text" name="interests" id="field_interests" value="{{ profile.interests or '' }}" placeholder="Cloud Architecture, Investment Banking, Industrial Automation">
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Campus / Location</label>
+        <input type="text" name="location" id="field_location" value="{{ profile.location or '' }}" placeholder="E.g. Braamfontein, Johannesburg">
+      </div>
+      <div class="field">
+        <label>Years of Practical Experience
+          <span class="tooltip" tabindex="0" role="button" aria-label="Help: Include internships, vacation work, part-time jobs, and relevant projects. Partial years are accepted (e.g., 1.5)." data-help="Include internships, vacation work, part-time jobs, and relevant projects. Partial years are accepted (e.g., 1.5).">ⓘ</span>
+        </label>
+        <input type="number" step="0.5" min="0" max="50" name="experience_years" id="field_experience_years" value="{{ profile.experience_years if profile.experience_years else '' }}" placeholder="Enter years (optional)">
+      </div>
+    </div>
+    <div class="field">
+      <label>Executive Bio / Summary</label>
+      <textarea name="bio" id="field_bio" rows="4" placeholder="Tell employers about your academic trajectory, capstone projects, and ambitions...">{{ profile.bio or '' }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">Save Verified Profile</button>
+  </form>
+</div>
+
+<script>
+function triggerAiCvParse() {
+  const text = document.getElementById('aiCvInput').value.trim();
+  const alertBox = document.getElementById('aiParseAlert');
+  const btn = document.getElementById('btnParseCv');
+  const btnText = document.getElementById('parseBtnText');
+
+  if (!text) {
+    alertBox.style.display = 'block';
+    alertBox.style.background = 'var(--danger-soft)';
+    alertBox.style.color = 'var(--danger)';
+    alertBox.style.borderColor = 'rgba(184, 58, 48, 0.3)';
+    alertBox.innerHTML = '⚠️ Please paste your own CV or transcript text above first.';
+    return;
+  }
+
+  btnText.textContent = '⏳ Reading text...';
+  btn.disabled = true;
+
+  fetch('{{ url_for("student.parse_cv") }}', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cv_text: text })
+  })
+  .then(res => res.json())
+  .then(res => {
+    btnText.textContent = 'Pre-Fill Profile Details';
+    btn.disabled = false;
+
+    if (res.success && res.data) {
+      const d = res.data;
+      if (d.full_name) document.getElementById('field_full_name').value = d.full_name;
+      if (d.qualification) document.getElementById('field_qualification').value = d.qualification;
+      if (d.field_of_study) document.getElementById('field_field_of_study').value = d.field_of_study;
+      if (d.skills) document.getElementById('field_skills').value = d.skills;
+      if (d.interests) document.getElementById('field_interests').value = d.interests;
+      if (d.location) document.getElementById('field_location').value = d.location;
+      if (d.experience_years !== undefined) document.getElementById('field_experience_years').value = d.experience_years;
+      if (d.bio) document.getElementById('field_bio').value = d.bio;
+
+      alertBox.style.display = 'block';
+      alertBox.style.background = 'var(--success-soft)';
+      alertBox.style.color = 'var(--teal-dark)';
+      alertBox.style.borderColor = 'rgba(31, 138, 112, 0.3)';
+      alertBox.innerHTML = `✓ <strong>Profile Form Updated!</strong> Populated degree, ${d.skills_count} skills, and experience for ${d.field_of_study}. Review below and save when ready.`;
+      
+      // Gentle scroll to form
+      document.getElementById('profileForm').scrollIntoView({ behavior: 'smooth' });
+    } else {
+      alertBox.style.display = 'block';
+      alertBox.style.background = 'var(--danger-soft)';
+      alertBox.style.color = 'var(--danger)';
+      alertBox.textContent = res.error || 'Failed to read text.';
+    }
+  })
+  .catch(err => {
+    btnText.textContent = 'Pre-Fill Profile Details';
+    btn.disabled = false;
+    alertBox.style.display = 'block';
+    alertBox.style.background = 'var(--danger-soft)';
+    alertBox.style.color = 'var(--danger)';
+    alertBox.textContent = 'An error occurred while importing.';
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}User Directory{% endblock %}
+{% block content %}
+<a href="{{ url_for('admin.dashboard') }}" class="nav-link">← Back to executive dashboard</a>
+
+<div class="section-title" style="margin-top:0.8rem; margin-bottom:1.5rem;">
+  <div>
+    <h1>Institutional <span class="italic-serif">User Directory</span></h1>
+    <p class="muted" style="margin:0;">Governed credentials, faculty verifications, and recruiter account states.</p>
+  </div>
+</div>
+
+<div class="card" style="padding:0; overflow:hidden; border: 1px solid var(--border);">
+  <table style="width:100%; border-collapse:collapse;">
+    <thead>
+      <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border);">
+        <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft);">Identity / Entity</th>
+        <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft);">Role</th>
+        <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft);">Enrolled Date</th>
+        <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft);">Governance State</th>
+        <th style="padding: 0.8rem 1rem; text-align: right; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft);">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 0.8rem 1rem;">
+          <strong>
+            {% if user.student_profile %}
+              {{ user.student_profile.full_name }}
+            {% elif user.company_profile %}
+              {{ user.company_profile.company_name }}
+            {% else %}
+              {{ user.email.split('@')[0]|capitalize }}
+            {% endif %}
+          </strong>
+          <div class="muted" style="font-size: 0.78rem;">{{ user.email }}</div>
+        </td>
+        <td style="padding: 0.8rem 1rem;">
+          {% if user.role == 'student' %}
+            <span class="badge badge-neutral" style="font-size: 0.75rem;">Student Candidate</span>
+          {% elif user.role == 'company' %}
+            <span class="badge badge-low" style="font-size: 0.75rem;">Corporate Employer</span>
+          {% else %}
+            <span class="badge badge-neutral" style="font-size: 0.75rem; background: var(--gold-light); color: var(--gold-dark); border-color: rgba(197, 160, 89, 0.4);">Administrator</span>
+          {% endif %}
+        </td>
+        <td style="padding: 0.8rem 1rem; font-size: 0.82rem;" class="muted">{{ user.created_at.strftime('%d %b %Y') }}</td>
+        <td style="padding: 0.8rem 1rem;">
+          {% if user.is_active_account %}
+            <span class="badge badge-low" style="font-size: 0.75rem;">● Active & Verified</span>
+          {% else %}
+            <span class="badge badge-high" style="font-size: 0.75rem;">Quarantined</span>
+          {% endif %}
+        </td>
+        <td style="padding: 0.8rem 1rem; text-align: right;">
+          {% if user.role != 'admin' %}
+          <form method="POST" action="{{ url_for('admin.toggle_user', user_id=user.id) }}" style="display:inline;">
+            <button type="submit" class="btn btn-small {% if user.is_active_account %}btn-outline{% else %}btn-primary{% endif %}">
+              {{ 'Quarantine' if user.is_active_account else 'Restore Access' }}
+            </button>
+          </form>
+          {% else %}
+          <span class="muted" style="font-size:0.75rem;">Protected</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

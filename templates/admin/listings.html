@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Opportunity Compliance{% endblock %}
+{% block content %}
+<a href="{{ url_for('admin.dashboard') }}" class="nav-link">← Back to executive dashboard</a>
+
+<div class="section-title" style="margin-top:0.8rem; margin-bottom:1.5rem;">
+  <div>
+    <h1>Opportunity <span class="italic-serif">Compliance Directory</span></h1>
+    <p class="muted" style="margin:0;">Audit corporate vacancies, stipend parity, and automated IsolationForest anomaly scores.</p>
+  </div>
+  <a href="{{ url_for('admin.drop_guard') }}" class="btn btn-primary btn-small">Review Flagged Quarantine →</a>
+</div>
+
+<div class="card" style="padding:0; overflow:hidden; border: 1px solid var(--border);">
+  <table style="width:100%; border-collapse:collapse;">
+    <thead>
+      <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border);">
+        <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft);">Opportunity & Entity</th>
+        <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft);">Field / Faculty</th>
+        <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft);">Stipend</th>
+        <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft);">Anomaly Score</th>
+        <th style="padding: 0.8rem 1rem; text-align: right; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft);">Compliance State</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for opp in listings %}
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 0.8rem 1rem;">
+          <strong>{{ opp.title }}</strong>
+          <div class="muted" style="font-size: 0.78rem;">{{ opp.company.company_name }} · Posted {{ opp.posted_at.strftime('%d %b %Y') }}</div>
+        </td>
+        <td style="padding: 0.8rem 1rem;">
+          <span class="badge badge-neutral" style="font-size:0.75rem;">{{ opp.field_of_study or "General" }}</span>
+        </td>
+        <td style="padding: 0.8rem 1rem; font-size: 0.82rem;" class="mono">
+          {% if opp.salary_stipend %}R{{ "{:,.0f}".format(opp.salary_stipend) }}/mo{% else %}Unpaid{% endif %}
+        </td>
+        <td style="padding: 0.8rem 1rem;">
+          <span class="mono" style="font-weight:600; color:{% if opp.anomaly_score > 60 %}var(--danger){% elif opp.anomaly_score > 30 %}var(--amber){% else %}var(--teal-dark){% endif %};">
+            {{ opp.anomaly_score }}/100
+          </span>
+        </td>
+        <td style="padding: 0.8rem 1rem; text-align: right;">
+          {% if opp.is_flagged and not opp.flag_reviewed %}
+            <span class="badge badge-flag" style="font-size:0.75rem;">Under Quarantine</span>
+          {% elif opp.is_flagged and opp.flag_reviewed and opp.is_active %}
+            <span class="badge badge-low" style="font-size:0.75rem;">● Approved Live</span>
+          {% elif opp.is_flagged and opp.flag_reviewed and not opp.is_active %}
+            <span class="badge badge-high" style="font-size:0.75rem;">Removed</span>
+          {% elif opp.is_active %}
+            <span class="badge badge-low" style="font-size:0.75rem;">● Live</span>
+          {% else %}
+            <span class="badge badge-neutral" style="font-size:0.75rem;">Inactive</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

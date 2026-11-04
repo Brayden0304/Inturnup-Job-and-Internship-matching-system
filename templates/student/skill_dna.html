@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Skill DNA{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Your Skill DNA</h1>
+  <p class="muted">Visual representation of your skills and how they align with career opportunities</p>
+</div>
+
+<div class="dna-container">
+  <div class="dna-grid">
+    <div class="dna-card">
+      <div class="dna-card-header">
+        <h3>Skill Radar</h3>
+        <p class="muted">Your skill distribution across key areas</p>
+      </div>
+      <div class="chart-container">
+        <canvas id="skillRadarChart"></canvas>
+      </div>
+    </div>
+
+    <div class="dna-card">
+      <div class="dna-card-header">
+        <h3>Skill Breakdown</h3>
+        <p class="muted">Detailed view of your skill levels</p>
+      </div>
+      <div class="skill-bars">
+        {% for skill in skills %}
+        <div class="skill-bar-item">
+          <div class="skill-bar-label">
+            <span class="skill-name">{{ skill.name }}</span>
+            <span class="skill-score">{{ skill.score }}/100</span>
+          </div>
+          <div class="skill-bar-track">
+            <div class="skill-bar-fill" style="width: {{ skill.score }}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="dna-card recommendations-card">
+    <div class="dna-card-header">
+      <h3>Skill Recommendations</h3>
+      <p class="muted">Based on your profile and target opportunities</p>
+    </div>
+    <div class="recommendations-grid">
+      {% for rec in recommendations %}
+      <div class="recommendation-item">
+        <div class="rec-icon">💡</div>
+        <div class="rec-content">
+          <h4>{{ rec.title }}</h4>
+          <p>{{ rec.description }}</p>
+          <span class="rec-tag">{{ rec.category }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+  let radarChartInstance = null;
+
+  function getRadarThemeConfig() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    return {
+      textColor: isDark ? '#F7F7F5' : '#111215',
+      gridColor: isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(17, 18, 21, 0.16)',
+      angleColor: isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(17, 18, 21, 0.16)',
+      borderColor: isDark ? '#DFBA73' : '#9E782F',
+      pointBg: isDark ? '#DFBA73' : '#C5A059',
+      pointBorder: isDark ? '#121316' : '#FFFFFF',
+      fillBg: isDark ? 'rgba(223, 186, 115, 0.32)' : 'rgba(197, 160, 89, 0.32)'
+    };
+  }
+
+  function initOrUpdateRadarChart() {
+    const canvas = document.getElementById('skillRadarChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const cfg = getRadarThemeConfig();
+
+    if (radarChartInstance) {
+      radarChartInstance.destroy();
+    }
+
+    radarChartInstance = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: {{ skill_labels | safe }},
+        datasets: [{
+          label: 'Your Skills',
+          data: {{ skill_scores | safe }},
+          backgroundColor: cfg.fillBg,
+          borderColor: cfg.borderColor,
+          borderWidth: 2.5,
+          pointBackgroundColor: cfg.pointBg,
+          pointBorderColor: cfg.pointBorder,
+          pointBorderWidth: 2,
+          pointRadius: 4.5,
+          pointHoverRadius: 6.5,
+          pointHoverBackgroundColor: '#FFFFFF',
+          pointHoverBorderColor: cfg.borderColor
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 400 },
+        scales: {
+          r: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              stepSize: 20,
+              color: cfg.textColor,
+              showLabelBackdrop: false,
+              font: {
+                size: 10,
+                weight: '600'
+              }
+            },
+            grid: {
+              color: cfg.gridColor,
+              lineWidth: 1.2
+            },
+            angleLines: {
+              color: cfg.angleColor,
+              lineWidth: 1.2
+            },
+            pointLabels: {
+              color: cfg.textColor,
+              font: {
+                size: 12.5,
+                weight: '600',
+                family: "'Inter', sans-serif"
+              },
+              padding: 10
+            }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return ' ' + context.label + ': ' + context.raw + ' / 100 Proficiency';
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Initialize immediately
+  initOrUpdateRadarChart();
+
+  // Watch for theme toggle changes
+  const themeBtn = document.getElementById('themeToggle');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', () => {
+      setTimeout(initOrUpdateRadarChart, 50);
+    });
+  }
+
+  // Also listen for system theme changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    setTimeout(initOrUpdateRadarChart, 50);
+  });
+</script>
+{% endblock %}

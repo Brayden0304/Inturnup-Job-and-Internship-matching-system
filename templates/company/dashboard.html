@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Company dashboard{% endblock %}
+{% block content %}
+<h1>{{ profile.company_name }}</h1>
+<p class="muted">Manage your listings and review applicants.</p>
+
+<div class="grid grid-3" style="margin-bottom:1.6rem;">
+  <div class="stat"><div class="stat-value">{{ listings|length }}</div><div class="stat-label">Listings posted</div></div>
+  <div class="stat"><div class="stat-value">{{ total_applications }}</div><div class="stat-label">Total applications</div></div>
+  <div class="stat"><div class="stat-value">{{ flagged_count }}</div><div class="stat-label">Flagged for review</div></div>
+</div>
+
+<div class="section-title">
+  <h2>Your listings</h2>
+  <a href="{{ url_for('company.post_opportunity') }}" class="btn btn-primary btn-small">Post opportunity</a>
+</div>
+
+{% if listings %}
+  {% for opp in listings %}
+  <div class="card">
+    <div class="card-row">
+      <div>
+        <h3>{{ opp.title }}</h3>
+        <p class="muted" style="margin-bottom:0.4rem;">{{ opp.opportunity_type }} · {{ opp.location or "Location flexible" }} · Posted {{ opp.posted_at.strftime('%d %b %Y') }}</p>
+        {% if opp.is_flagged and not opp.flag_reviewed %}
+          <span class="badge badge-flag">Pending review</span>
+        {% elif opp.is_active %}
+          <span class="badge badge-low">Live</span>
+        {% else %}
+          <span class="badge badge-neutral">Inactive</span>
+        {% endif %}
+      </div>
+      <a href="{{ url_for('company.view_applications', opp_id=opp.id) }}" class="btn btn-outline btn-small">{{ opp.applications|length }} applicant{{ 's' if opp.applications|length != 1 else '' }}</a>
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="empty-state">
+    <p style="margin-bottom:1rem;">You haven't posted any opportunities yet.</p>
+    <a href="{{ url_for('company.post_opportunity') }}" class="btn btn-primary">Post your first opportunity</a>
+  </div>
+{% endif %}
+{% endblock %}

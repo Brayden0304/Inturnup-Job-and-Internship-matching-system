@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}My applications{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem; margin-bottom:1.2rem;">
+  <div>
+    <h1>My applications</h1>
+    <p class="muted" style="margin:0;">Track your placement journey and application status.</p>
+  </div>
+  <a href="{{ url_for('student.search') }}" class="btn btn-primary btn-small">Browse Opportunities</a>
+</div>
+
+{% if applications %}
+  {% for app in applications %}
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:1rem; padding-bottom:1rem; border-bottom:1px solid var(--border);">
+      <div style="flex:1; min-width:280px;">
+        <h3 style="margin:0 0 0.4rem 0;">
+          <a href="{{ url_for('student.view_opportunity', opp_id=app.opportunity.id) }}" style="color:var(--ink); text-decoration:none;">{{ app.opportunity.title }}</a>
+        </h3>
+        <p class="muted" style="margin:0 0 0.5rem 0;">
+          <strong>{{ app.opportunity.company.company_name }}</strong> · {{ app.opportunity.location or "Location flexible" }}
+        </p>
+        <div style="display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap;">
+          {% set badge_map = {'submitted': 'neutral', 'reviewed': 'medium', 'shortlisted': 'low', 'accepted': 'low', 'rejected': 'high'} %}
+          <span class="badge badge-{{ badge_map.get(app.status, 'neutral') }}" style="font-size:0.82rem;">{{ app.status|capitalize }}</span>
+          <span class="mono" style="font-size:0.78rem; color:var(--ink-soft);">Match: {{ app.match_score|round(0)|int }}%</span>
+          <span style="font-size:0.78rem; color:var(--ink-soft);">Applied: {{ app.applied_at.strftime('%d %b %Y') }}</span>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div class="match-ring" style="--pct:{{ app.match_score }}; margin-left:auto;">
+          <span>{{ app.match_score|round(0)|int }}%</span>
+        </div>
+        <div style="font-size:0.68rem; color:var(--ink-soft); font-weight:600; margin-top:0.3rem;">Match Score</div>
+      </div>
+    </div>
+
+    <!-- Application Timeline -->
+    <div>
+      <h4 style="font-size:0.85rem; margin:0 0 0.8rem 0; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.05em;">Application Timeline</h4>
+      <div style="position:relative; padding-left:1.5rem;">
+        <!-- Timeline Line -->
+        <div style="position:absolute; left:7px; top:0; bottom:0; width:2px; background:var(--border);"></div>
+
+        {% set history = app.get_status_history() %}
+        {% for item in history %}
+        <div style="position:relative; margin-bottom:1.2rem;">
+          <!-- Timeline Dot -->
+          <div style="position:absolute; left:-1.5rem; top:0.25rem; width:16px; height:16px; border-radius:50%; background:var(--gold); border:3px solid var(--paper-raised); box-shadow:0 0 0 2px var(--gold);"></div>
+
+          <div style="font-size:0.8rem; color:var(--ink-soft); margin-bottom:0.2rem;">
+            {% from datetime import datetime %}
+            {% set dt = datetime.fromisoformat(item.timestamp) %}
+            {{ dt.strftime('%d %b %Y at %H:%M') }}
+          </div>
+          <div style="font-weight:600; font-size:0.9rem; color:var(--ink);">
+            {{ item.status|capitalize }}
+            {% if item.note %}
+              <span style="font-weight:400; color:var(--ink-soft);">— {{ item.note }}</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="empty-state" style="padding: 4rem 2rem; text-align: center; background: var(--paper-raised); border-radius: var(--radius-lg); border: 2px dashed var(--border);">
+    <div style="font-size: 4rem; margin-bottom: 1.5rem; opacity: 0.7;">📋</div>
+    <h3 style="margin: 0 0 0.75rem 0; font-size: 1.4rem;">No applications yet</h3>
+    <p class="muted" style="margin-bottom: 0.5rem; font-size: 0.95rem;">Your application journey starts here!</p>
+    <p class="muted" style="margin-bottom: 2rem; font-size: 0.88rem;">Browse opportunities and apply to ones that match your skills and interests.</p>
+    <a href="{{ url_for('student.search') }}" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-size: 0.95rem;">Browse Opportunities</a>
+  </div>
+{% endif %}
+{% endblock %}

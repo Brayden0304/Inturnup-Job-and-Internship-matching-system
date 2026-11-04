@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}{{ opp.title }}{% endblock %}
+{% block content %}
+<a href="{{ url_for('student.search') }}" class="nav-link">← Back to opportunity catalog</a>
+
+<div class="card" style="margin-top:1rem; border: 1px solid var(--border);">
+  <div class="card-row" style="align-items: flex-start;">
+    <div>
+      <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold-dark); font-weight: 700; margin-bottom: 0.3rem;">
+        {{ opp.field_of_study or "Multi-Disciplinary Placement" }}
+      </div>
+      <h1 style="font-size:1.8rem; margin: 0 0 0.3rem 0;">{{ opp.title }}</h1>
+      <p class="muted" style="margin-bottom: 0.5rem; font-size: 0.95rem;">
+        <strong>{{ opp.company.company_name }}</strong> · {{ opp.location or "Location flexible" }} · <span class="badge badge-neutral" style="font-size: 0.75rem;">{{ opp.opportunity_type|capitalize }}</span>
+      </p>
+    </div>
+    <div style="text-align: right;">
+      <div class="match-ring" style="--pct:{{ score }}; margin-left: auto;"><span>{{ score|round(0)|int }}%</span></div>
+      <div style="font-size: 0.75rem; color: var(--ink-soft); margin-top: 0.4rem; font-weight: 600;">Compatibility Index</div>
+    </div>
+  </div>
+
+  <div class="grid grid-3" style="margin:1.4rem 0;">
+    <div class="stat"><div class="stat-value" style="font-size:1.3rem;">{{ opp.duration_months }} Months</div><div class="stat-label">Contract Duration</div></div>
+    <div class="stat"><div class="stat-value" style="font-size:1.3rem;">{% if opp.salary_stipend %}R{{ "{:,.0f}".format(opp.salary_stipend) }}/mo{% else %}Unpaid{% endif %}</div><div class="stat-label">Stipend Parity</div></div>
+    <div class="stat"><div class="stat-value" style="font-size:1.3rem;">{{ opp.closing_date.strftime('%d %b %Y') if opp.closing_date else 'Rolling Admissions' }}</div><div class="stat-label">Application Deadline</div></div>
+  </div>
+
+  <!-- Interactive Skill Gap & Path to 100% Analysis -->
+  <div class="card" style="margin: 1.5rem 0; background: linear-gradient(135deg, var(--paper-raised) 0%, var(--gold-light) 100%); border: 1px solid rgba(197, 160, 89, 0.4); padding: 1.4rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span style="background: var(--gold); color: #0A0A0A; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">Competency &amp; Gap Analysis</span>
+        <strong style="font-size: 1.05rem;">Path to 100% Compatibility</strong>
+      </div>
+      <div style="font-size: 0.85rem; font-weight: 700; color: var(--teal-dark);">
+        Current: {{ score|round(0)|int }}% → Potential: {{ potential_score|round(0)|int }}%
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="gap: 1.2rem; margin-top: 1rem;">
+      <!-- Matched Skills -->
+      <div style="background: var(--paper-raised); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--teal-dark); font-weight: 700; margin-bottom: 0.5rem;">
+          ✓ Verified Candidate Matches ({{ matched_skills|length }})
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+          {% for s in matched_skills %}
+          <span style="background: var(--success-soft); color: var(--teal-dark); border: 1px solid rgba(31,138,112,0.3); padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.78rem; font-weight: 600;">
+            ✓ {{ s }}
+          </span>
+          {% else %}
+          <span class="muted" style="font-size: 0.8rem;">No exact keyword matches found with your current profile.</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Missing Skills to Bridge -->
+      <div style="background: var(--paper-raised); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber); font-weight: 700; margin-bottom: 0.5rem;">
+          + Missing Skills to Acquire ({{ missing_skills|length }})
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+          {% for s in missing_skills %}
+          <span style="background: var(--amber-soft); color: var(--amber); border: 1px solid rgba(201,130,43,0.3); padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.78rem; font-weight: 600;">
+            + {{ s }}
+          </span>
+          {% else %}
+          <span style="color: var(--teal-dark); font-weight: 600; font-size: 0.82rem;">★ Perfect Alignment! You possess all required competencies.</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    {% if recommended_electives %}
+    <div style="margin-top: 1rem; padding-top: 0.8rem; border-top: 1px dashed rgba(197, 160, 89, 0.4);">
+      <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); font-weight: 700; margin-bottom: 0.5rem;">
+        Recommended University Bridging Courses
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+        {% for r in recommended_electives %}
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; background: rgba(0,0,0,0.02); padding: 0.4rem 0.6rem; border-radius: 4px;">
+          <div>
+            <strong>{{ r.course }}</strong> · <span class="muted">{{ r.provider }}</span>
+          </div>
+          <span style="color: var(--teal-dark); font-weight: 700; font-family: var(--font-mono);">{{ r.impact }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <h3>Position Overview</h3>
+  <p style="line-height: 1.7; font-size: 0.95rem; color: var(--ink);">{{ opp.description }}</p>
+
+  <h3 style="margin-top: 1.5rem;">Institutional Competency Taxonomy</h3>
+  <div style="margin-bottom:1.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
+    {% for s in opp.required_skills_list() %}
+      <span class="tag" style="font-size: 0.82rem;">{{ s }}</span>
+    {% else %}
+      <span class="muted">No specific skills listed</span>
+    {% endfor %}
+  </div>
+
+  <div style="padding-top: 1.2rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+    {% if already_applied %}
+      <span class="badge badge-low" style="font-size: 0.9rem; padding: 0.5rem 1rem;">● Application Lodged with Recruiter</span>
+    {% else %}
+      <form method="POST" action="{{ url_for('student.apply', opp_id=opp.id) }}">
+        <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.8rem; font-size: 1rem;">
+          Submit Institutional Application →
+        </button>
+      </form>
+    {% endif %}
+    <a href="{{ url_for('student.dossier') }}" target="_blank" class="muted" style="font-size: 0.82rem;">
+      View Dean's Verified Dossier that will be attached ↗
+    </a>
+  </div>
+</div>
+{% endblock %}

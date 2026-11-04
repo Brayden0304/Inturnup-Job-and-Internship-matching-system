@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Log In{% endblock %}
+{% block content %}
+<div class="login-container">
+  <div class="card form-narrow login-card">
+    <div class="login-header">
+      <div class="login-logo">
+        <span class="brand-mark"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C5A059" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span>
+      </div>
+      <h2>Sign In</h2>
+      <p class="muted">Access your verified credentials and placement opportunities.</p>
+    </div>
+    <script type="application/json" id="approvedEmailDomains">{{ approved_domains | tojson }}</script>
+    <form method="POST" id="loginForm">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" name="email" id="loginEmail" required autofocus placeholder="Enter your email" autocomplete="username" maxlength="254">
+        <div class="hint" id="loginEmailHint" role="status" style="display:none; color:var(--danger); font-size:0.8rem; margin-top:0.3rem;"></div>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <div style="position: relative;">
+          <input type="password" name="password" id="loginPassword" required placeholder="Enter your password" style="padding-right: 3rem;">
+          <button type="button" onclick="togglePassword('loginPassword', this)" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--ink-soft); padding: 0; display: flex; align-items: center; justify-content: center;" aria-label="Toggle password visibility">
+            <svg id="loginPassword-eye" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg id="loginPassword-eye-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Log In</button>
+    </form>
+    <p class="muted" style="margin-top:1rem; text-align:center; font-size:0.85rem;">
+      <a href="{{ url_for('auth.forgot_password') }}" style="color:var(--ink-soft);">Forgot password?</a>
+    </p>
+    <div style="margin-top:1.5rem; text-align:center; display:flex; flex-direction:column; gap:0.5rem; font-size:0.88rem;">
+      <p class="muted" style="margin:0;">
+        New here? <a href="{{ url_for('auth.register') }}" style="color:var(--gold-dark); font-weight:600;">Create an Account</a>
+      </p>
+      <p class="muted" style="margin:0; font-size:0.8rem;">
+        Institutional Director or Dean? <a href="{{ url_for('admin.admin_login') }}" style="color:var(--ink-soft); text-decoration:underline;">Admin Portal</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePassword(inputId, button) {
+  const input = document.getElementById(inputId);
+  const eyeIcon = document.getElementById(inputId + '-eye');
+  const eyeOffIcon = document.getElementById(inputId + '-eye-off');
+
+  if (input.type === 'password') {
+    input.type = 'text';
+    eyeIcon.style.display = 'none';
+    eyeOffIcon.style.display = 'block';
+  } else {
+    input.type = 'password';
+    eyeIcon.style.display = 'block';
+    eyeOffIcon.style.display = 'none';
+  }
+}
+</script>
+{% endblock %}

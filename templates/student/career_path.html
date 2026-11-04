@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Career Path{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Career Path Simulator</h1>
+  <p class="muted">Visualise your potential career trajectory based on your field of study</p>
+</div>
+
+<div class="career-container">
+  <div class="career-field-badge">
+    <span class="field-label">Field of Study:</span>
+    <span class="field-value">{{ field }}</span>
+  </div>
+
+  <div class="career-timeline">
+    {% for path in paths %}
+    <div class="career-path-item">
+      <div class="path-marker">
+        <div class="marker-circle">{{ loop.index }}</div>
+        <div class="marker-line"></div>
+      </div>
+      <div class="path-content">
+        <div class="path-header">
+          <h3>{{ path.title }}</h3>
+          <span class="path-timeline">{{ path.timeline }}</span>
+        </div>
+        <p class="path-description">{{ path.description }}</p>
+        <div class="path-details">
+          <div class="detail-item">
+            <span class="detail-label">Salary Range:</span>
+            <span class="detail-value">{{ path.salary }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Key Skills:</span>
+            <div class="skill-tags">
+              {% for skill in path.skills %}
+              <span class="skill-tag">{{ skill }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="career-tips-card">
+    <div class="tips-header">
+      <h3>💡 Career Growth Tips</h3>
+    </div>
+    <div class="tips-list">
+      <div class="tip-item">
+        <div class="tip-number">1</div>
+        <p>Focus on building strong foundational skills in your first 2 years</p>
+      </div>
+      <div class="tip-item">
+        <div class="tip-number">2</div>
+        <p>Seek mentorship and networking opportunities early in your career</p>
+      </div>
+      <div class="tip-item">
+        <div class="tip-number">3</div>
+        <p>Continuously learn and adapt to industry changes and new technologies</p>
+      </div>
+      <div class="tip-item">
+        <div class="tip-number">4</div>
+        <p>Take on leadership roles and projects to accelerate your growth</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

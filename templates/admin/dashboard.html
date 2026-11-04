@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% block title %}Executive Console{% endblock %}
+{% block content %}
+<div class="admin-executive-header" style="margin-bottom: 2.2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 1.8rem;">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem;">
+      <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 10px var(--gold);"></span>
+      <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--gold-dark); font-weight: 700;">Academic Governance & Platform Oversight</span>
+    </div>
+    <h1 style="margin: 0; font-size: 2.3rem; letter-spacing: -0.03em;">Dean's <span class="italic-serif">Executive Console</span></h1>
+    <p class="muted" style="margin: 0.4rem 0 0 0; font-size: 0.95rem;">Real-time placement oversight, multi-disciplinary cohort health, and automated threat isolation.</p>
+  </div>
+  <div style="display: flex; align-items: center; gap: 0.8rem;">
+    <div style="background: var(--paper-raised); border: 1px solid var(--border); border-radius: 30px; padding: 0.4rem 1rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; box-shadow: var(--shadow-sm);">
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite;"></span>
+      <span style="font-weight: 600; color: var(--ink);">DropGuard™ Engine Active</span>
+    </div>
+    <a href="{{ url_for('admin.drop_guard') }}" class="btn btn-primary btn-small">Security & ML Engine →</a>
+  </div>
+</div>
+
+<!-- Executive Metric Matrix -->
+<div class="grid grid-4" style="margin-bottom: 2rem;">
+  <div class="stat" style="background: var(--paper-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.4rem; position: relative; overflow: hidden; box-shadow: var(--shadow-sm);">
+    <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); font-weight: 700; margin-bottom: 0.5rem;">Registered Talent</div>
+    <div class="stat-value" style="font-size: 2.2rem; font-weight: 700; color: var(--ink); line-height: 1;">{{ student_count }}</div>
+    <div class="muted" style="font-size: 0.78rem; margin-top: 0.6rem;">Across 5 University Faculties</div>
+    <div style="position: absolute; right: -10px; bottom: -10px; font-size: 3.5rem; opacity: 0.05; font-family: var(--font-display);">🎓</div>
+  </div>
+
+  <div class="stat" style="background: var(--paper-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.4rem; position: relative; overflow: hidden; box-shadow: var(--shadow-sm);">
+    <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); font-weight: 700; margin-bottom: 0.5rem;">Corporate Partners</div>
+    <div class="stat-value" style="font-size: 2.2rem; font-weight: 700; color: var(--ink); line-height: 1;">{{ company_count }}</div>
+    <div class="muted" style="font-size: 0.78rem; margin-top: 0.6rem;">Tier-One Accredited Employers</div>
+    <div style="position: absolute; right: -10px; bottom: -10px; font-size: 3.5rem; opacity: 0.05; font-family: var(--font-display);">🏛️</div>
+  </div>
+
+  <div class="stat" style="background: var(--paper-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.4rem; position: relative; overflow: hidden; box-shadow: var(--shadow-sm);">
+    <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); font-weight: 700; margin-bottom: 0.5rem;">Live Opportunities</div>
+    <div class="stat-value" style="font-size: 2.2rem; font-weight: 700; color: var(--gold-dark); line-height: 1;">{{ listing_count }}</div>
+    <div class="muted" style="font-size: 0.78rem; margin-top: 0.6rem;">{{ total_applications }} Total Applications Submitted</div>
+    <div style="position: absolute; right: -10px; bottom: -10px; font-size: 3.5rem; opacity: 0.05; font-family: var(--font-display);">💼</div>
+  </div>
+
+  <div class="stat" style="background: var(--paper-raised); border: 1px solid {% if flagged_count > 0 %}rgba(184, 58, 48, 0.3){% else %}var(--border){% endif %}; border-radius: var(--radius); padding: 1.4rem; position: relative; overflow: hidden; box-shadow: var(--shadow-sm);">
+    <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: {% if flagged_count > 0 %}var(--danger){% else %}var(--ink-soft){% endif %}; font-weight: 700; margin-bottom: 0.5rem;">Threat Isolation</div>
+    <div class="stat-value" style="font-size: 2.2rem; font-weight: 700; color: {% if flagged_count > 0 %}var(--danger){% else %}var(--teal){% endif %}; line-height: 1;">{{ flagged_count }}</div>
+    <div class="muted" style="font-size: 0.78rem; margin-top: 0.6rem;">{% if flagged_count > 0 %}Awaiting Institutional Quarantine{% else %}All Postings Compliant{% endif %}</div>
+    <div style="position: absolute; right: -10px; bottom: -10px; font-size: 3.5rem; opacity: 0.05; font-family: var(--font-display);">🛡️</div>
+  </div>
+</div>
+
+<!-- DropGuard AI Threat & Disengagement Early Intervention Command Banner -->
+<div class="card" style="margin-bottom: 2.2rem; background: linear-gradient(135deg, var(--paper-raised) 0%, var(--gold-light) 100%); border: 1px solid rgba(197, 160, 89, 0.35); box-shadow: var(--shadow-md); position: relative; overflow: hidden;">
+  <div style="position: absolute; top:0; left:0; width: 4px; height: 100%; background: var(--gold);"></div>
+  <div class="card-row" style="align-items: flex-start; justify-content: space-between;">
+    <div style="flex: 1;">
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
+        <span class="badge badge-low" style="background: rgba(31, 138, 112, 0.12); color: var(--teal-dark); font-weight: 600; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.08em;">DropGuard™ Early Intervention Protocol</span>
+        <span class="muted" style="font-size: 0.78rem;">RandomForest Disengagement Scoring + SHAP Trees</span>
+      </div>
+      <h3 style="margin: 0; font-size: 1.25rem;">Automated Student Disengagement Interventions</h3>
+      <p style="margin: 0.4rem 0 0.8rem 0; font-size: 0.88rem; color: var(--ink);">
+        {% if high_risk_assessments %}
+          <strong style="color: var(--danger);">{{ high_risk_assessments|length }} student</strong> flagged at critical disengagement risk. One-click academic advisor outreach is available below:
+        {% else %}
+          <strong>All candidates</strong> actively engaged in hiring tracks. Zero high-risk dropouts detected.
+        {% endif %}
+      </p>
+
+      {% if high_risk_assessments %}
+      <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.6rem;">
+        {% for a in high_risk_assessments %}
+        <div style="background: var(--paper-raised); padding: 0.8rem 1rem; border-radius: 6px; border: 1px solid rgba(184, 58, 48, 0.3); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.6rem;">
+          <div>
+            <strong>{{ a.student.full_name }}</strong> · <span class="muted" style="font-size:0.8rem;">{{ a.student.qualification }} ({{ a.student.location }})</span>
+            <div style="font-size: 0.75rem; color: var(--danger); margin-top: 0.2rem;">
+              ⚠️ Disengagement Probability: {{ (a.risk_probability * 100)|round(0)|int }}% · {{ a.student.days_since_last_login }} days inactive · Profile {{ a.student.profile_completeness|round(0)|int }}%
+            </div>
+          </div>
+          <form method="POST" action="{{ url_for('admin.intervene_student', student_id=a.student.id) }}" style="margin:0;">
+            <button type="submit" class="btn btn-small btn-primary" style="font-size: 0.78rem; padding: 0.4rem 0.8rem;">
+              📢 Dispatch Advisor Support Nudge
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Interactive Chart.js Faculty Placement & Stipend Analytics -->
+<div class="card" style="margin-bottom: 2.2rem; border: 1px solid var(--border); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.8rem;">
+    <div>
+      <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold-dark); font-weight: 700;">Executive Visual Intelligence</div>
+      <h2 style="font-size: 1.3rem; margin: 0.2rem 0 0 0;">Faculty Placement Velocity & Stipend Parity</h2>
+    </div>
+    <span class="muted" style="font-size: 0.78rem;">Aggregated across 2026 Academic Cohorts</span>
+  </div>
+
+  <div class="grid grid-2" style="gap: 2rem; align-items: center;">
+    <div>
+      <div style="font-size: 0.82rem; font-weight: 700; color: var(--ink-soft); margin-bottom: 0.6rem; text-align: center;">
+        Cohort Placement Velocity (%) by Faculty
+      </div>
+      <div style="height: 240px; position: relative;">
+        <canvas id="placementVelocityChart"></canvas>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size: 0.82rem; font-weight: 700; color: var(--ink-soft); margin-bottom: 0.6rem; text-align: center;">
+        Average Monthly Stipend Parity (ZAR)
+      </div>
+      <div style="height: 240px; position: relative;">
+        <canvas id="stipendDistributionChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dual Control Columns: Action Dossiers & Recent Platform Activity -->
+<div class="grid grid-2" style="gap: 1.8rem; margin-bottom: 2rem;">
+  <!-- Column 1: Institutional Governance Modules -->
+  <div>
+    <h2 style="font-size: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+      <span>Administrative Governance Modules</span>
+    </h2>
+    <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+      <a href="{{ url_for('admin.users') }}" class="card" style="padding: 1.2rem; display: flex; justify-content: space-between; align-items: center; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid var(--border);">
+        <div>
+          <h3 style="margin: 0; font-size: 1.05rem;">User Directory & Credentials</h3>
+          <p class="muted" style="margin: 0.2rem 0 0 0; font-size: 0.82rem;">Manage student matriculation, institutional verification, and recruiter permissions.</p>
+        </div>
+        <span style="font-size: 1.2rem; color: var(--gold-dark);">→</span>
+      </a>
+
+      <a href="{{ url_for('admin.listings') }}" class="card" style="padding: 1.2rem; display: flex; justify-content: space-between; align-items: center; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid var(--border);">
+        <div>
+          <h3 style="margin: 0; font-size: 1.05rem;">Opportunity Directory & Compliance</h3>
+          <p class="muted" style="margin: 0.2rem 0 0 0; font-size: 0.82rem;">Review and audit all 24 multi-disciplinary graduate vacancies and corporate internships.</p>
+        </div>
+        <span style="font-size: 1.2rem; color: var(--gold-dark);">→</span>
+      </a>
+
+      <a href="{{ url_for('admin.drop_guard') }}" class="card" style="padding: 1.2rem; display: flex; justify-content: space-between; align-items: center; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid var(--border);">
+        <div>
+          <h3 style="margin: 0; font-size: 1.05rem;">DropGuard™ Threat Mitigation</h3>
+          <p class="muted" style="margin: 0.2rem 0 0 0; font-size: 0.82rem;">Review SHAP factor trees, isolate fraudulent recruiters, and prevent student dropout.</p>
+        </div>
+        <span style="font-size: 1.2rem; color: var(--gold-dark);">→</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Column 2: Recent Activity Ledger -->
+  <div>
+    <h2 style="font-size: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+      <span>Recent Platform Ledger</span>
+      <span class="muted" style="font-size: 0.78rem; font-family: var(--font-body); font-weight: 500;">Live Event Stream</span>
+    </h2>
+
+    <div class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--border);">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+        <thead>
+          <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border);">
+            <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft);">Entity / Account</th>
+            <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft);">Faculty / Role</th>
+            <th style="padding: 0.75rem 1rem; text-align: right; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft);">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in recent_users %}
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 0.7rem 1rem;">
+              <strong>
+                {% if u.student_profile %}
+                  {{ u.student_profile.full_name }}
+                {% elif u.company_profile %}
+                  {{ u.company_profile.company_name }}
+                {% else %}
+                  {{ u.email.split('@')[0]|capitalize }}
+                {% endif %}
+              </strong>
+              <div class="muted" style="font-size: 0.75rem;">{{ u.email }}</div>
+            </td>
+            <td style="padding: 0.7rem 1rem;">
+              {% if u.role == 'student' %}
+                <span class="badge badge-neutral" style="font-size: 0.72rem;">Student</span>
+              {% elif u.role == 'company' %}
+                <span class="badge badge-low" style="font-size: 0.72rem;">Employer</span>
+              {% else %}
+                <span class="badge badge-neutral" style="font-size: 0.72rem; background: var(--gold-light); color: var(--gold-dark); border-color: rgba(197, 160, 89, 0.4);">Dean</span>
+              {% endif %}
+            </td>
+            <td style="padding: 0.7rem 1rem; text-align: right;">
+              {% if u.is_active_account %}
+                <span style="color: var(--teal-dark); font-weight: 600; font-size: 0.78rem;">● Verified</span>
+              {% else %}
+                <span style="color: var(--danger); font-weight: 600; font-size: 0.78rem;">Quarantined</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // 1. Placement Velocity Bar Chart
+  const ctxVel = document.getElementById('placementVelocityChart');
+  if (ctxVel) {
+    new Chart(ctxVel, {
+      type: 'bar',
+      data: {
+        labels: ['IT & Cloud', 'Finance', 'Engineering', 'Healthcare', 'Law', 'Marketing'],
+        datasets: [{
+          label: 'Placement Rate (%)',
+          data: [94, 91, 86, 82, 84, 78],
+          backgroundColor: [
+            'rgba(197, 160, 89, 0.85)',
+            'rgba(31, 138, 112, 0.85)',
+            'rgba(201, 130, 43, 0.85)',
+            'rgba(74, 144, 226, 0.85)',
+            'rgba(138, 75, 175, 0.85)',
+            'rgba(184, 58, 48, 0.85)'
+          ],
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              callback: function(value) { return value + "%"; }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // 2. Stipend Distribution Doughnut Chart
+  const ctxStip = document.getElementById('stipendDistributionChart');
+  if (ctxStip) {
+    new Chart(ctxStip, {
+      type: 'doughnut',
+      data: {
+        labels: ['Finance (R32k)', 'IT (R29.5k)', 'Engineering (R27k)', 'Law (R24k)', 'Marketing (R21k)', 'Healthcare (R19.5k)'],
+        datasets: [{
+          data: [32000, 29500, 27000, 24000, 21000, 19500],
+          backgroundColor: [
+            '#1F8A70',
+            '#C5A059',
+            '#C9822B',
+            '#4A90E2',
+            '#E85A50',
+            '#8A4BAF'
+          ],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { boxWidth: 12, font: { size: 10 } }
+          }
+        }
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

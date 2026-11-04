@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Post opportunity{% endblock %}
+{% block content %}
+<h1>Post an opportunity</h1>
+<p class="muted">New listings are automatically screened before appearing publicly.</p>
+
+<div class="card form-narrow">
+  <form method="POST" id="postOpportunityForm">
+    <div class="field">
+      <label>Title</label>
+      <input type="text" name="title" required minlength="3" maxlength="150" placeholder="E.g. Junior Software Developer Intern">
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Type</label>
+        <select name="opportunity_type">
+          <option value="internship">Internship</option>
+          <option value="learnership">Learnership</option>
+          <option value="entry-level">Entry-level job</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Field of Study</label>
+        <input type="text" name="field_of_study" maxlength="150" placeholder="E.g. Information Technology">
+      </div>
+    </div>
+    <div class="field">
+      <label>Description</label>
+      <textarea name="description" required minlength="15" rows="5" placeholder="Responsibilities, what the student will learn, requirements (minimum 15 characters)..."></textarea>
+    </div>
+    <div class="field">
+      <label>Required Skills</label>
+      <input type="text" name="required_skills" placeholder="Python, SQL, Communication">
+      <div class="hint">Comma-separated. Used for matching against student profiles.</div>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Location</label>
+        <input type="text" name="location" maxlength="120" placeholder="E.g. Durban / Remote">
+      </div>
+      <div class="field">
+        <label>Monthly Stipend (R)</label>
+        <input type="number" step="1" min="0" max="500000" name="salary_stipend" value="0">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Duration (Months)</label>
+        <input type="number" min="1" max="36" name="duration_months" value="3">
+      </div>
+      <div class="field">
+        <label>Closing Date <span class="muted" style="font-size: 0.8rem; font-weight: normal;">(Cannot be in the past)</span></label>
+        <input type="date" name="closing_date" id="postClosingDate" min="{{ today }}" required>
+        <div class="hint" id="closingDateHint" style="display: none; color: var(--danger); font-size: 0.82rem; margin-top: 0.35rem; font-weight: 500;"></div>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">Post opportunity</button>
+  </form>
+</div>
+{% endblock %}

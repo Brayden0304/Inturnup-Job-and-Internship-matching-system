@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Administrator Portal{% endblock %}
+{% block content %}
+<div class="login-container" style="max-width: 440px; margin: 3rem auto;">
+  <div class="card form-narrow login-card" style="border: 1px solid rgba(197, 160, 89, 0.4); box-shadow: var(--shadow-lg); position: relative; overflow: hidden;">
+    <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--gold), var(--teal));"></div>
+    
+    <div class="login-header" style="text-align: center; margin-bottom: 2rem;">
+      <div class="login-logo" style="margin: 0 auto 1rem auto;">
+        <span class="brand-mark" style="background: var(--ink); color: var(--gold); border: 1px solid var(--gold);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C5A059" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span>
+      </div>
+      <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--gold-dark); font-weight: 700; margin-bottom: 0.3rem;">
+        Institutional Governance
+      </div>
+      <h2 style="font-size: 1.6rem; margin: 0 0 0.4rem 0;">Dean & <span class="italic-serif">Administrator</span> Access</h2>
+      <p class="muted" style="font-size: 0.85rem; margin: 0;">Authorised academic personnel only. All access events are audited.</p>
+    </div>
+
+    <form method="POST">
+      <div class="field" style="margin-bottom: 1.2rem;">
+        <label style="font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Email</label>
+        <input type="email" name="email" required autofocus placeholder="Enter administrator email" style="border-color: rgba(197, 160, 89, 0.35);">
+      </div>
+
+      <div class="field" style="margin-bottom: 1.6rem;">
+        <label style="font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Password</label>
+        <div style="position: relative;">
+          <input type="password" name="password" id="adminPassword" required placeholder="Enter administrator password" style="border-color: rgba(197, 160, 89, 0.35); padding-right: 3rem;">
+          <button type="button" onclick="togglePassword('adminPassword', this)" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--ink-soft); padding: 0; display: flex; align-items: center; justify-content: center;" aria-label="Toggle password visibility">
+            <svg id="adminPassword-eye" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg id="adminPassword-eye-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" style="padding: 0.75rem 1rem; font-size: 0.95rem;">
+        Authenticate to Console →
+      </button>
+    </form>
+
+    <div style="margin-top: 1.8rem; padding-top: 1.2rem; border-top: 1px solid var(--border); text-align: center; font-size: 0.82rem;">
+      <a href="{{ url_for('auth.login') }}" class="muted" style="text-decoration: none;">
+        ← Return to General Student & Recruiter Portal
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePassword(inputId, button) {
+  const input = document.getElementById(inputId);
+  const eyeIcon = document.getElementById(inputId + '-eye');
+  const eyeOffIcon = document.getElementById(inputId + '-eye-off');
+
+  if (input.type === 'password') {
+    input.type = 'text';
+    eyeIcon.style.display = 'none';
+    eyeOffIcon.style.display = 'block';
+  } else {
+    input.type = 'password';
+    eyeIcon.style.display = 'block';
+    eyeOffIcon.style.display = 'none';
+  }
+}
+</script>
+{% endblock %}

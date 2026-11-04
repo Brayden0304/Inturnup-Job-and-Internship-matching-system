@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}InternUp{% endblock %} · Student Job &amp; Internship Matching Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='icon.svg') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20261104-company-domain-1">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') + '?v=2' }}">
+<meta name="theme-color" content="#C5A059">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="InternUp">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-192.png') }}">
+<meta name="format-detection" content="telephone=no">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  // A theme is scoped to the currently signed-in user and this browser tab.
+  // Signing out restores the public site to light mode. Do not inherit the
+  // legacy browser-wide `theme` setting from another account.
+  (function() {
+    const viewerId = {{ (current_user.get_id() if current_user.is_authenticated else '') | tojson }};
+    try {
+      localStorage.removeItem('theme'); // remove the old cross-account setting
+      const previousViewer = sessionStorage.getItem('internup-theme-viewer');
+      if (!viewerId || previousViewer !== viewerId) {
+        sessionStorage.removeItem('internup-theme');
+      }
+      if (viewerId) {
+        sessionStorage.setItem('internup-theme-viewer', viewerId);
+      } else {
+        sessionStorage.removeItem('internup-theme-viewer');
+      }
+      const selectedTheme = viewerId && sessionStorage.getItem('internup-theme') === 'dark'
+        ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', selectedTheme);
+    } catch (e) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  })();
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-left">
+            <a class="brand" href="{{ url_for('main.index') }}">
+        <span class="brand-mark" style="background: linear-gradient(135deg, #18191E 0%, #0A0B0E 100%); border: 1.5px solid #C5A059; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; box-shadow: 0 4px 12px rgba(197, 160, 89, 0.25);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C5A059" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+        </span>
+        <span class="brand-name">InternUp</span>
+      </a>
+
+      {% if current_user.is_authenticated %}
+      <nav class="nav-links">
+        {% if current_user.role == 'student' %}
+          <a href="{{ url_for('student.dashboard') }}" class="nav-link">Dashboard</a>
+          <a href="{{ url_for('student.search') }}" class="nav-link">Find Opportunities</a>
+          <a href="{{ url_for('student.bookmarks') }}" class="nav-link">Bookmarks</a>
+          <a href="{{ url_for('student.applications') }}" class="nav-link">My Applications</a>
+          <a href="{{ url_for('student.career_path') }}" class="nav-link">Career Path</a>
+        {% elif current_user.role == 'company' %}
+          <a href="{{ url_for('company.dashboard') }}" class="nav-link">Dashboard</a>
+          <a href="{{ url_for('company.post_opportunity') }}" class="nav-link">Post Opportunity</a>
+          <a href="{{ url_for('company.settings') }}" class="nav-link">Notifications</a>
+        {% elif current_user.role == 'admin' %}
+          <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a>
+          <a href="{{ url_for('admin.users') }}" class="nav-link">Users</a>
+          <a href="{{ url_for('admin.listings') }}" class="nav-link">Listings</a>
+          <a href="{{ url_for('admin.drop_guard') }}" class="nav-link nav-link-accent">Fraud Detection</a>
+        {% endif %}
+      </nav>
+      {% endif %}
+    </div>
+
+    <div class="topbar-right">
+      {% if current_user.is_authenticated %}
+
+      <!-- Real-Time Institutional Notification Bell -->
+      <div class="topbar-item-wrap">
+        <button id="notifBellBtn" type="button" class="topbar-icon-btn" aria-label="Notifications" title="Placement Notifications">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span class="notif-dot"></span>
+        </button>
+
+        <div id="notifDropdown" class="topbar-dropdown notif-dropdown-menu">
+          <div style="padding: 0.8rem 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--gold-light);">
+            <strong style="font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold-dark);">Placement Updates</strong>
+            <span style="font-size: 0.7rem; background: var(--gold); color: #000; padding: 0.1rem 0.4rem; border-radius: 10px; font-weight: 700;">Live</span>
+          </div>
+          <div style="max-height: 260px; overflow-y: auto; font-size: 0.82rem;">
+            {% if current_user.role == 'student' %}
+            <div style="padding: 0.7rem 1rem; border-bottom: 1px solid var(--border);">
+              <div style="font-weight: 600; color: var(--teal-dark);">✓ Shortlisted by Standard Bank</div>
+              <div class="muted" style="font-size: 0.74rem;">Associate Cloud Platform Engineer application advanced.</div>
+            </div>
+            <div style="padding: 0.7rem 1rem; border-bottom: 1px solid var(--border);">
+              <div style="font-weight: 600; color: var(--ink);">✦ Dean's Talent Dossier Ready</div>
+              <div class="muted" style="font-size: 0.74rem;">Your certified printable credential has been generated.</div>
+            </div>
+            <div style="padding: 0.7rem 1rem;">
+              <div style="font-weight: 600; color: var(--gold-dark);">💼 24 Opportunities Available</div>
+              <div class="muted" style="font-size: 0.74rem;">New roles across Finance, Law, Tech and Engineering.</div>
+            </div>
+            {% elif current_user.role == 'admin' %}
+            <div style="padding: 0.7rem 1rem; border-bottom: 1px solid var(--border);">
+              <div style="font-weight: 600; color: var(--danger);">🛡️ DropGuard™ Anomaly Intercepted</div>
+              <div class="muted" style="font-size: 0.74rem;">QuickCash listing quarantined (IsolationForest score 85).</div>
+            </div>
+            <div style="padding: 0.7rem 1rem; border-bottom: 1px solid var(--border);">
+              <div style="font-weight: 600; color: var(--amber);">⚠️ Disengagement Risk Flagged</div>
+              <div class="muted" style="font-size: 0.74rem;">Lerato Dlamini flagged (48 days inactive). Advisor nudge ready.</div>
+            </div>
+            <div style="padding: 0.7rem 1rem;">
+              <div style="font-weight: 600; color: var(--teal-dark);">● 5 University Cohorts Synced</div>
+              <div class="muted" style="font-size: 0.74rem;">Wits, UCT, UP, Stellenbosch, UKZN active.</div>
+            </div>
+            {% else %}
+            <div style="padding: 0.7rem 1rem; border-bottom: 1px solid var(--border);">
+              <div style="font-weight: 600; color: var(--teal-dark);">✓ Candidate Match Verified</div>
+              <div class="muted" style="font-size: 0.74rem;">Thabo Nkosi applied for Cloud Systems (96% compatibility).</div>
+            </div>
+            <div style="padding: 0.7rem 1rem;">
+              <div style="font-weight: 600; color: var(--gold-dark);">● Accredited Partner 2026</div>
+              <div class="muted" style="font-size: 0.74rem;">Verified recruiter status certified by Dean's Office.</div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Account Dropdown Pill -->
+      <div class="topbar-item-wrap">
+        <button id="userAccountBtn" type="button" class="user-pill-btn" aria-haspopup="true" aria-expanded="false" title="Account Menu">
+          <span class="user-avatar-initials">{{ current_user.avatar_initials }}</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="user-chevron">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+
+        <div id="userAccountDropdown" class="topbar-dropdown user-dropdown-menu">
+          <div class="user-dropdown-header">
+            <div class="user-dropdown-title">
+              {% if current_user.role == 'student' and current_user.student_profile and current_user.student_profile.full_name %}
+                {{ current_user.student_profile.full_name }}
+              {% elif current_user.role == 'company' and current_user.company_profile and current_user.company_profile.company_name %}
+                {{ current_user.company_profile.company_name }}
+              {% elif current_user.role == 'admin' %}
+                Dean's Administration
+              {% else %}
+                {{ current_user.email }}
+              {% endif %}
+            </div>
+            <div class="user-dropdown-badge">
+              {% if current_user.role == 'student' %}
+                Student Candidate
+              {% elif current_user.role == 'company' %}
+                Verified Employer
+              {% elif current_user.role == 'admin' %}
+                System Administrator
+              {% endif %}
+            </div>
+          </div>
+          <div class="user-dropdown-body">
+            {% if current_user.role == 'student' %}
+              <a href="{{ url_for('student.profile') }}" class="dropdown-item">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>My Profile</span>
+              </a>
+              <a href="{{ url_for('student.skill_dna') }}" class="dropdown-item">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                <span>Skill DNA Matrix</span>
+              </a>
+              <a href="{{ url_for('student.dossier') }}" target="_blank" class="dropdown-item">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span>Candidate Dossier (PDF)</span>
+              </a>
+              <a href="{{ url_for('student.settings') }}" class="dropdown-item">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <span>Notification Settings</span>
+              </a>
+            {% elif current_user.role == 'company' %}
+              <a href="{{ url_for('company.profile') }}" class="dropdown-item">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>Company Profile</span>
+              </a>
+              <a href="{{ url_for('company.settings') }}" class="dropdown-item">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <span>Notification Settings</span>
+              </a>
+            {% elif current_user.role == 'admin' %}
+              <a href="{{ url_for('admin.dashboard') }}" class="dropdown-item">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <span>Dean's Executive Console</span>
+              </a>
+              <a href="{{ url_for('admin.settings') }}" class="dropdown-item">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <span>Notification Settings</span>
+              </a>
+            {% endif %}
+            <div class="dropdown-divider"></div>
+            <!-- Executive Customisation Feature: Portal Theme Switch -->
+            <div style="padding: 0.45rem 1rem 0.2rem; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold-dark);">
+              Personalisation
+            </div>
+            <button type="button" id="dropdownThemeToggle" class="dropdown-item" style="width: 100%; border: none; background: none; text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+              <span style="display: inline-flex; align-items: center; gap: 0.6rem;">
+                <svg id="dropdownThemeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+                <span id="dropdownThemeText">Dark Mode</span>
+              </span>
+              <span id="dropdownThemeBadge" style="font-size: 0.72rem; padding: 0.15rem 0.55rem; border-radius: 12px; background: var(--gold-light); color: var(--gold-dark); font-weight: 700; border: 1px solid var(--gold);">
+                Off
+              </span>
+            </button>
+            <div class="dropdown-divider"></div>
+            <a href="{{ url_for('auth.logout') }}" class="dropdown-item dropdown-logout">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              <span>Log out</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      {% else %}
+        {# Public / Unauthenticated Navigation #}
+        {% if request.endpoint == 'main.index' %}
+          {# Home page: Logo on left, Log In button on right ONLY #}
+          <a href="{{ url_for('auth.login') }}" class="topbar-login-text-btn">Log In</a>
+        {% else %}
+          {# Auth pages: Keep the header clean and match the home-page navigation #}
+          <a href="{{ url_for('auth.login') }}" class="topbar-login-text-btn">Log In</a>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+<main class="page">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-stack">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="indeed-footer">
+  <div class="indeed-footer-container">
+    
+    <!-- Indeed-Style Expandable Accordions -->
+    <div class="indeed-accordion-group">
+      <!-- Accordion 1: Trending on InternUp -->
+      <div class="indeed-accordion-item">
+        <button type="button" class="indeed-accordion-btn" onclick="toggleIndeedAccordion('trendingAccordion', this)">
+          <span>What's trending on InternUp</span>
+          <span class="chevron">▾</span>
+        </button>
+        <div id="trendingAccordion" class="indeed-accordion-content">
+          <div class="indeed-columns-grid">
+            <div class="indeed-col">
+              <h4>Trending Career Disciplines</h4>
+              <ul>
+                <li><a href="{{ url_for('student.search') }}?field=Finance+%26+Accounting">Investment Banking &amp; Valuation</a></li>
+                <li><a href="{{ url_for('student.search') }}?field=Information+Technology">Cloud Systems &amp; AWS Platform</a></li>
+                <li><a href="{{ url_for('student.search') }}?field=Finance+%26+Accounting">SAICA Audit Articles 2026</a></li>
+                <li><a href="{{ url_for('student.search') }}?field=Engineering">Renewable Energy Systems</a></li>
+                <li><a href="{{ url_for('student.search') }}?field=Healthcare+%26+Nursing">Clinical Sciences &amp; Nursing</a></li>
+                <li><a href="{{ url_for('student.search') }}?field=Marketing+%26+Communications">Brand Strategy &amp; Growth</a></li>
+                <li><a href="{{ url_for('student.search') }}?field=Law+%26+Governance">Corporate Commercial M&amp;A Law</a></li>
+              </ul>
+            </div>
+
+            <div class="indeed-col">
+              <h4>Placement Locations</h4>
+              <ul>
+                <li><a href="{{ url_for('student.search') }}?location=Johannesburg">Jobs in Johannesburg &amp; Sandton</a></li>
+                <li><a href="{{ url_for('student.search') }}?location=Cape+Town">Jobs in Cape Town &amp; Rondebosch</a></li>
+                <li><a href="{{ url_for('student.search') }}?location=Pretoria">Jobs in Pretoria &amp; Hatfield</a></li>
+                <li><a href="{{ url_for('student.search') }}?location=Durban">Jobs in Durban &amp; Berea</a></li>
+                <li><a href="{{ url_for('student.search') }}?location=Remote">Remote &amp; Hybrid Rotations</a></li>
+              </ul>
+            </div>
+
+            <div class="indeed-col">
+              <h4>Stipend Benchmarks</h4>
+              <ul>
+                <li><a href="{{ url_for('student.search') }}?min_stipend=30000">Executive Trainee (&gt; R30,000/mo)</a></li>
+                <li><a href="{{ url_for('student.search') }}?min_stipend=25000">Graduate Fellowships (&gt; R25,000/mo)</a></li>
+                <li><a href="{{ url_for('student.search') }}?type=entry-level">Full-Time Graduate Contracts</a></li>
+                <li><a href="{{ url_for('student.search') }}?type=internship">Accredited Vacation Work</a></li>
+                <li><a href="{{ url_for('student.career_path') }}">Salary &amp; ECSA/SAICA Progression</a></li>
+              </ul>
+            </div>
+
+            <div class="indeed-col">
+              <h4>Accredited University Cohorts</h4>
+              <ul>
+                <li><a href="{{ url_for('student.search') }}?q=Wits">Wits University (CS, Eng, Commerce)</a></li>
+                <li><a href="{{ url_for('student.search') }}?q=UCT">UCT (Commerce &amp; SAICA Stream)</a></li>
+                <li><a href="{{ url_for('student.search') }}?q=Pretoria">UP (Mechanical &amp; Mechatronics)</a></li>
+                <li><a href="{{ url_for('student.search') }}?q=Stellenbosch">Stellenbosch (Brand Strategy)</a></li>
+                <li><a href="{{ url_for('student.search') }}?q=UKZN">UKZN (Clinical Healthcare)</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accordion 2: Employer & Academic Resources -->
+      <div class="indeed-accordion-item">
+        <button type="button" class="indeed-accordion-btn" onclick="toggleIndeedAccordion('employerAccordion', this)">
+          <span>Employer &amp; Academic Governance Resources</span>
+          <span class="chevron">▾</span>
+        </button>
+        <div id="employerAccordion" class="indeed-accordion-content">
+          <div class="indeed-columns-grid">
+            <div class="indeed-col">
+              <h4>For Corporate Recruiters</h4>
+              <ul>
+                <li><a href="{{ url_for('company.post_opportunity') }}">Post an Opportunity</a></li>
+                <li><a href="{{ url_for('company.dashboard') }}">Candidate Shortlist &amp; Review</a></li>
+                <li><a href="{{ url_for('company.profile') }}">Employer Verification Profile</a></li>
+                <li><a href="{{ url_for('main.index') }}">Accredited Placement Partner 2026</a></li>
+              </ul>
+            </div>
+
+            <div class="indeed-col">
+              <h4>Academic Dean &amp; Governance</h4>
+              <ul>
+                <li><a href="{{ url_for('admin.admin_login') }}">Dean's Executive Console</a></li>
+                <li><a href="{{ url_for('admin.drop_guard') }}">DropGuard™ Fraud Detection</a></li>
+                <li><a href="{{ url_for('admin.dashboard') }}">Faculty Placement Analytics</a></li>
+                <li><a href="{{ url_for('admin.users') }}">Matriculated Student Directory</a></li>
+              </ul>
+            </div>
+
+            <div class="indeed-col">
+              <h4>Candidate Intelligence</h4>
+              <ul>
+                <li><a href="{{ url_for('student.profile') }}">AI Resume / CV Auto-Fill Engine</a></li>
+                <li><a href="{{ url_for('student.dossier') }}" target="_blank">Dean's Certified Talent Dossier (PDF)</a></li>
+                <li><a href="{{ url_for('student.skill_dna') }}">Algorithmic Skill DNA Matrix</a></li>
+                <li><a href="{{ url_for('student.career_path') }}">Multi-Disciplinary Career Trajectories</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Indeed-Style Horizontal Directory Links -->
+    <div class="indeed-nav-row">
+      <a href="{{ url_for('student.search') }}">Browse Opportunities</a>
+      <a href="{{ url_for('student.search') }}?field=All">Browse Verified Companies</a>
+      <a href="{{ url_for('student.career_path') }}">Salaries &amp; Stipends</a>
+      <a href="{{ url_for('student.search') }}">Universities</a>
+      <a href="{{ url_for('student.dossier') }}" target="_blank">Dean's Certified Dossier</a>
+      <a href="{{ url_for('admin.drop_guard') }}">DropGuard™ Intelligence</a>
+      <a href="{{ url_for('admin.admin_login') }}">Admin Portal</a>
+      <a href="{{ url_for('main.index') }}">About InternUp</a>
+      <a href="mailto:support@internup.ac.za">Help &amp; Support</a>
+    </div>
+
+    <hr style="border:0; border-top:1px solid var(--border); margin:1.5rem 0 0.8rem 0;">
+    <br>
+
+    <!-- Indeed-Style Bottom Legal & Colophon Row -->
+    <div class="indeed-legal-row">
+      <a href="#">Institutional Accessibility</a>
+      <a href="#">Placement Privacy Protocols</a>
+      <a href="#">DropGuard™ Security &amp; Anomaly Policies</a>
+      <a href="#">Terms of Placement</a>
+      <a href="#">Council on Higher Education Compliance</a>
+    </div>
+
+    <div class="indeed-brand-colophon" style="margin-top:1.2rem; font-size:0.8rem; color:var(--ink-soft); font-weight:500;">
+      <span>© 2026 InternUp Placement Architecture</span>
+    </div>
+
+  </div>
+</footer>
+
+<!-- Floating PWA Install Banner -->
+<aside id="ytInstallBanner" aria-label="Install App" style="display:none; position:fixed; bottom:24px; right:24px; z-index:9000; max-width:390px; width:calc(100vw - 36px); background:var(--paper-raised); border:1px solid rgba(197, 160, 89, 0.45); border-radius:14px; box-shadow:0 16px 40px rgba(0,0,0,0.25); padding:1rem 1.2rem; backdrop-filter:blur(10px);">
+  <div style="display:flex; align-items:flex-start; gap:0.9rem;">
+        <div class="brand-mark" style="width:42px; height:42px; flex-shrink:0; border-radius:10px; background:linear-gradient(135deg, #18191E 0%, #0A0B0E 100%); border:1.5px solid #C5A059; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(197, 160, 89, 0.25);">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C5A059" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+    </div>
+    <div style="flex:1;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <h4 style="margin:0; font-size:1rem; font-weight:700; color:var(--ink);">Install InternUp</h4>
+        <button id="closeYtBanner" type="button" aria-label="Dismiss" style="background:none; border:none; color:var(--ink-soft); font-size:1.3rem; cursor:pointer; padding:0 0 0 0.5rem; line-height:1;">&times;</button>
+      </div>
+      <p style="margin:0.25rem 0 0.75rem 0; font-size:0.82rem; color:var(--ink-soft); line-height:1.4;">
+        Install app for faster access, a standalone desktop window, and placement alerts.
+      </p>
+      <div style="display:flex; gap:0.6rem; align-items:center;">
+        <button id="ytInstallBtn" type="button" class="btn btn-primary btn-small" style="padding:0.4rem 0.95rem; font-size:0.82rem; font-weight:700; display:inline-flex; align-items:center; gap:0.35rem; border-radius:20px; background:linear-gradient(135deg, var(--gold), var(--gold-dark)); color:#0A0A0A; border:none;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Install
+        </button>
+        <button id="ytDismissBtn" type="button" style="background:none; border:none; font-size:0.8rem; color:var(--ink-soft); cursor:pointer; padding:0.4rem 0.6rem;">
+          Not now
+        </button>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Platform-Adaptive Installation Modal -->
+<div id="desktopModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.72); backdrop-filter:blur(6px); z-index:99999; align-items:center; justify-content:center; padding:1rem;">
+  <div style="background:var(--paper-raised); border:1px solid rgba(197, 160, 89, 0.4); border-radius:18px; padding:1.8rem 1.4rem; max-width:440px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,0.4); position:relative; max-height:90vh; overflow-y:auto;">
+    <button type="button" id="closeDesktopModal" style="position:absolute; top:1rem; right:1.1rem; background:none; border:none; font-size:1.6rem; line-height:1; cursor:pointer; color:var(--ink-soft);">&times;</button>
+    
+    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+      <div class="brand-mark" style="width:38px; height:38px; border-radius:9px; background:linear-gradient(135deg, #18191E 0%, #0A0B0E 100%); border:1.5px solid #C5A059; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(197, 160, 89, 0.25);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C5A059" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+      </div>
+      <div>
+        <h3 style="margin:0; font-size:1.15rem; font-weight:700; color:var(--ink);">Install InternUp</h3>
+        <span style="font-size:0.72rem; color:var(--gold-dark); font-weight:600; text-transform:uppercase; letter-spacing:0.08em;" id="detectedPlatformBadge">Add to Home Screen</span>
+      </div>
+    </div>
+
+    <!-- Platform Selector Tabs -->
+    <div style="display:flex; gap:0.4rem; background:var(--paper); padding:0.25rem; border-radius:10px; margin-bottom:1.2rem; border:1px solid var(--border);">
+      <button type="button" class="platform-tab" onclick="switchPlatformTab('mobile')" id="tabMobile" style="flex:1; padding:0.45rem 0.5rem; font-size:0.76rem; font-weight:700; border-radius:7px; border:none; cursor:pointer;">📱 Phone / Tablet</button>
+      <button type="button" class="platform-tab" onclick="switchPlatformTab('desktop')" id="tabDesktop" style="flex:1; padding:0.45rem 0.5rem; font-size:0.76rem; font-weight:700; border-radius:7px; border:none; cursor:pointer;">💻 PC / Laptop</button>
+    </div>
+
+    <!-- Mobile Panel (Android & iOS) -->
+    <div id="panelMobile">
+      <!-- Android Instructions -->
+      <div id="androidGuide" style="background:var(--gold-light); border:1px solid rgba(197, 160, 89, 0.35); border-radius:10px; padding:0.9rem; margin-bottom:0.8rem;">
+        <div style="display:flex; align-items:center; gap:0.5rem; font-weight:700; font-size:0.85rem; color:var(--ink); margin-bottom:0.5rem;">
+          <span>🤖 Android (Chrome, Brave, Samsung)</span>
+        </div>
+        <ol style="margin:0; padding-left:1.2rem; font-size:0.82rem; line-height:1.6; color:var(--ink);">
+          <li>Tap the <strong>three dots menu (⋮)</strong> at the top right of your browser.</li>
+          <li>Tap <strong>"Add to Home screen"</strong> or <strong>"Install app"</strong>.</li>
+          <li>Tap <strong>"Install"</strong>. InternUp will launch as a full-screen app!</li>
+        </ol>
+      </div>
+
+      <!-- iOS Instructions -->
+      <div id="iosGuide" style="background:var(--gold-light); border:1px solid rgba(197, 160, 89, 0.35); border-radius:10px; padding:0.9rem;">
+        <div style="display:flex; align-items:center; gap:0.5rem; font-weight:700; font-size:0.85rem; color:var(--ink); margin-bottom:0.5rem;">
+          <span>🍏 iPhone &amp; iPad (Safari)</span>
+        </div>
+        <ol style="margin:0; padding-left:1.2rem; font-size:0.82rem; line-height:1.6; color:var(--ink);">
+          <li>Tap the <strong>Share button</strong> (square with up arrow ⎋) at the bottom.</li>
+          <li>Scroll down and tap <strong>"Add to Home Screen"</strong> (⊞).</li>
+          <li>Tap <strong>"Add"</strong> in the top-right corner.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Desktop Panel (Windows / Mac / Linux) -->
+    <div id="panelDesktop" style="display:none;">
+      <div style="background:var(--gold-light); border:1px solid rgba(197, 160, 89, 0.35); border-radius:10px; padding:0.9rem; margin-bottom:1rem; font-size:0.82rem; line-height:1.5;">
+        <strong>🖥️ Direct Browser Install:</strong><br>
+        In Chrome, Edge, or Brave, click the <strong>Install icon (🖥️ or ⬇️)</strong> directly in the right side of the address bar at the top!
+      </div>
+
+      <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--gold-dark); font-weight:700; margin-bottom:0.4rem;">
+        Windows 1-Click Desktop Shortcut
+      </div>
+      <a href="{{ url_for('main.download_desktop_shortcut') }}" class="btn btn-primary btn-block" style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1rem; text-decoration:none; font-size:0.85rem;">
+        <span style="display:flex; align-items:center; gap:0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <strong>Download Desktop Shortcut (.zip)</strong>
+        </span>
+        <span style="font-size:0.72rem; background:rgba(0,0,0,0.15); padding:0.2rem 0.5rem; border-radius:10px;">Windows</span>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // 1. Dark Mode Toggle & Customisation Feature
+  (function initTheme() {
+    const dropdownToggle = document.getElementById('dropdownThemeToggle');
+    const dropdownBadge = document.getElementById('dropdownThemeBadge');
+    const dropdownText = document.getElementById('dropdownThemeText');
+    const dropdownIcon = document.getElementById('dropdownThemeIcon');
+    const html = document.documentElement;
+
+    function updateThemeUI(theme) {
+      if (dropdownBadge) {
+        dropdownBadge.textContent = theme === 'dark' ? 'On' : 'Off';
+        dropdownBadge.style.background = theme === 'dark' ? 'var(--gold)' : 'var(--gold-light)';
+        dropdownBadge.style.color = theme === 'dark' ? '#0A0A0A' : 'var(--gold-dark)';
+      }
+      if (dropdownIcon) {
+        if (theme === 'dark') {
+          dropdownIcon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+        } else {
+          dropdownIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+        }
+      }
+    }
+
+    updateThemeUI(html.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+
+    if (dropdownToggle) {
+      dropdownToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const currentTheme = html.getAttribute('data-theme') || 'light';
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        html.setAttribute('data-theme', newTheme);
+        try {
+          sessionStorage.setItem('internup-theme', newTheme);
+        } catch (e) {}
+        updateThemeUI(newTheme);
+      });
+    }
+
+    document.querySelectorAll('.settings-theme-switch').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const theme = this.getAttribute('data-theme-val');
+        if (theme) {
+          html.setAttribute('data-theme', theme);
+          try {
+            sessionStorage.setItem('internup-theme', theme);
+          } catch(err) {}
+          updateThemeUI(theme);
+        }
+      });
+    });
+  })();
+
+  // 2. Notification Drawer Toggle
+  (function initNotifications() {
+    const notifBtn = document.getElementById('notifBellBtn');
+    const notifDrop = document.getElementById('notifDropdown');
+    const userDrop = document.getElementById('userAccountDropdown');
+    const userBtn = document.getElementById('userAccountBtn');
+
+    if (notifBtn && notifDrop) {
+      notifBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (userDrop) {
+          userDrop.style.display = 'none';
+          if (userBtn) userBtn.setAttribute('aria-expanded', 'false');
+        }
+        const isHidden = notifDrop.style.display === 'none' || !notifDrop.style.display || window.getComputedStyle(notifDrop).display === 'none';
+        notifDrop.style.display = isHidden ? 'block' : 'none';
+      });
+      notifDrop.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+      document.addEventListener('click', () => {
+        notifDrop.style.display = 'none';
+      });
+    }
+  })();
+
+  // 2b. User Account Dropdown Toggle
+  (function initUserAccount() {
+    const userBtn = document.getElementById('userAccountBtn');
+    const userDrop = document.getElementById('userAccountDropdown');
+    const notifDrop = document.getElementById('notifDropdown');
+    if (userBtn && userDrop) {
+      userBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (notifDrop) notifDrop.style.display = 'none';
+        const isClosed = userDrop.style.display === 'none' || !userDrop.style.display || window.getComputedStyle(userDrop).display === 'none';
+        userDrop.style.display = isClosed ? 'block' : 'none';
+        userBtn.setAttribute('aria-expanded', isClosed ? 'true' : 'false');
+      });
+      userDrop.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+      document.addEventListener('click', () => {
+        userDrop.style.display = 'none';
+        userBtn.setAttribute('aria-expanded', 'false');
+      });
+    }
+  })();
+
+  // 3. Service Worker Registration for PWA / Desktop App
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/static/sw.js').catch(() => {});
+    });
+  }
+
+  
+  // Platform Detection and Tab Switching
+  function switchPlatformTab(platform) {
+    const tabM = document.getElementById('tabMobile');
+    const tabD = document.getElementById('tabDesktop');
+    const panelM = document.getElementById('panelMobile');
+    const panelD = document.getElementById('panelDesktop');
+    if (!tabM || !tabD || !panelM || !panelD) return;
+
+    if (platform === 'mobile') {
+      tabM.style.background = 'var(--gold)';
+      tabM.style.color = '#000';
+      tabD.style.background = 'transparent';
+      tabD.style.color = 'var(--ink-soft)';
+      panelM.style.display = 'block';
+      panelD.style.display = 'none';
+    } else {
+      tabD.style.background = 'var(--gold)';
+      tabD.style.color = '#000';
+      tabM.style.background = 'transparent';
+      tabM.style.color = 'var(--ink-soft)';
+      panelD.style.display = 'block';
+      panelM.style.display = 'none';
+    }
+  }
+
+  // 4. PWA Install Handling
+  let deferredInstallPrompt = null;
+  const ytBanner = document.getElementById('ytInstallBanner');
+  const ytInstallBtn = document.getElementById('ytInstallBtn');
+  const ytDismissBtn = document.getElementById('ytDismissBtn');
+  const closeYtBanner = document.getElementById('closeYtBanner');
+  const desktopModal = document.getElementById('desktopModal');
+  const closeDesktopModal = document.getElementById('closeDesktopModal');
+
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+  // Capture native browser install prompt (Chrome / Edge / Brave / Android)
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+
+    try {
+      if (!isStandalone && !sessionStorage.getItem('lp_install_dismissed')) {
+        setTimeout(() => {
+          if (ytBanner) ytBanner.style.display = 'block';
+        }, 1000);
+      }
+    } catch (e) {}
+  });
+
+  // Display install prompt banner after 1.5s if not already running as standalone app
+  try {
+    if (!isStandalone && !sessionStorage.getItem('lp_install_dismissed')) {
+      setTimeout(() => {
+        if (ytBanner && ytBanner.style.display === 'none') {
+          ytBanner.style.display = 'block';
+        }
+      }, 1500);
+    }
+  } catch (e) {}
+
+  async function handleAppInstall() {
+    if (deferredInstallPrompt) {
+      try {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        if (ytBanner) ytBanner.style.display = 'none';
+        return;
+      } catch (err) {
+        console.warn('Native install prompt failed:', err);
+      }
+    }
+
+    // Direct platform-aware modal
+    if (desktopModal) {
+      const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      switchPlatformTab(isMobile ? 'mobile' : 'desktop');
+      desktopModal.style.display = 'flex';
+    }
+    if (ytBanner) {
+      ytBanner.style.display = 'none';
+    }
+  }
+
+  if (ytInstallBtn) ytInstallBtn.addEventListener('click', handleAppInstall);
+
+  function dismissYtBanner() {
+    if (ytBanner) ytBanner.style.display = 'none';
+    try {
+      sessionStorage.setItem('lp_install_dismissed', '1');
+    } catch (e) {}
+  }
+
+  if (ytDismissBtn) ytDismissBtn.addEventListener('click', dismissYtBanner);
+  if (closeYtBanner) closeYtBanner.addEventListener('click', dismissYtBanner);
+
+  if (closeDesktopModal) {
+    closeDesktopModal.addEventListener('click', () => {
+      if (desktopModal) desktopModal.style.display = 'none';
+    });
+  }
+  window.addEventListener('click', (e) => {
+    if (e.target === desktopModal) {
+      desktopModal.style.display = 'none';
+    }
+  });
+
+
+  // 6. Form Input Polish: Auto-Capitalize Names/Titles & Clean Emails
+  document.addEventListener('DOMContentLoaded', () => {
+    const nameSelectors = 'input[name="name"], input[name="full_name"], input[name="company_name"], input[name="location"], input[name="field_of_study"], input[name="qualification"], input[name="title"], .capitalize-input';
+    document.querySelectorAll(nameSelectors).forEach(input => {
+      input.setAttribute('autocapitalize', 'words');
+      input.addEventListener('blur', () => {
+        if (!input.value) return;
+        const words = input.value.trim().split(/\s+/);
+        const acronyms = new Set(['IT', 'AI', 'AWS', 'UI', 'UX', 'ML', 'SQL', 'SAICA', 'CISA', 'LLB', 'BSC', 'BCOM', 'BA']);
+        const minors = new Set(['and', 'of', 'in', 'the', 'for', 'to', 'at', '&']);
+        input.value = words.map((w, i) => {
+          const upper = w.toUpperCase();
+          if (acronyms.has(upper)) return upper;
+          if (i > 0 && minors.has(w.toLowerCase())) return w.toLowerCase();
+          return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+        }).join(' ');
+      });
+    });
+
+    document.querySelectorAll('input[type="email"], .lowercase-input').forEach(input => {
+      input.setAttribute('autocapitalize', 'none');
+      input.addEventListener('blur', () => {
+        if (input.value) input.value = input.value.trim().toLowerCase();
+      });
+    });
+
+    // 7. Horizontal Carousel Dot Indicator Sync
+    const valGrid = document.querySelector('.value-grid');
+    const dots = document.querySelectorAll('.indicator-dot');
+    if (valGrid && dots.length) {
+      valGrid.addEventListener('scroll', () => {
+        const item = valGrid.firstElementChild;
+        if (!item) return;
+        const cardWidth = item.offsetWidth + 14;
+        const activeIdx = Math.min(dots.length - 1, Math.max(0, Math.round(valGrid.scrollLeft / cardWidth)));
+        dots.forEach((dot, idx) => {
+          dot.classList.toggle('active', idx === activeIdx);
+        });
+      }, { passive: true });
+    }
+  });
+
+    // 5. Indeed-Style Accordion Directory Toggle
+  function toggleIndeedAccordion(id, btn) {
+    const content = document.getElementById(id);
+    if (!content) return;
+    const isOpen = content.classList.contains('open');
+    if (isOpen) {
+      content.classList.remove('open');
+      btn.classList.remove('active');
+    } else {
+      content.classList.add('open');
+      btn.classList.add('active');
+    }
+  }
+</script>
+<script src="{{ url_for('static', filename='js/main.js') }}?v=20261104-company-domain-1"></script>
+{% if current_user.is_authenticated %}
+<script>
+  // Reload pages restored from browser Back/Forward cache to recheck access.
+  window.addEventListener('pageshow', function(event) {
+    if (event.persisted) window.location.reload();
+  });
+</script>
+{% endif %}
+</body>
+</html>
